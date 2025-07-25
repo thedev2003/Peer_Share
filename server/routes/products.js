@@ -1,15 +1,18 @@
 import express from 'express';
-const router = express.Router();
+import passport from 'passport';
+import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
+import { parser } from '../config/cloudinary.js'; // Import the multer parser
 
-// @route   GET /api/products
-// @desc    A test route to get mock products
-router.get('/', (req, res) => {
-	// This mock data will eventually come from your MongoDB database
-	const mockProducts = [
-		{ id: 1, name: 'Hercules Roadeo Bicycle', price: 4500 },
-		{ id: 2, name: 'Usha Air Cooler', price: 3200 },
-	];
-	res.json(mockProducts);
-});
+const router = express.Router();
+const authRequired = passport.authenticate('jwt', { session: false });
+
+// --- Public Routes ---
+router.get('/', getAllProducts);
+router.get('/:id', getProductById);
+
+// --- Protected Routes ---
+router.post('/', authRequired, parser.single('image'), createProduct);
+router.put('/:id', authRequired, updateProduct);
+router.delete('/:id', authRequired, deleteProduct);
 
 export default router;

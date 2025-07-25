@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Heart, MessageCircle, Tag, Package } from 'lucide-react';
 
 function ProductCard({ product }) {

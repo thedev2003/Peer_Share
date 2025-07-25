@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard'; // Assumes ProductCard is in a separate file
