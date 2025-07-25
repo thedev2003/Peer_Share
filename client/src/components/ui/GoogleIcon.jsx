@@ -1,5 +1,3 @@
-import React from 'react';
-
 // A simple SVG component for the Google G logo.
 export default function GoogleIcon() {
 	return (
