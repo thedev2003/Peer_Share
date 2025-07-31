@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { fetchUserByToken } from './store/authActions';
+import Navbar from './components/ui/Navbar';
 
 // Import Pages and Components
 import MarketplacePage from './pages/MarketplacePage';
@@ -39,6 +40,7 @@ export default function App() {
 	return (
 		<div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 font-sans text-gray-800 dark:text-white transition-colors duration-300">
 			<Router>
+				<Navbar />
 				<NotificationContainer /> {/* Add the notification container here */}
 				<Routes>
 					{/* Public Routes */}

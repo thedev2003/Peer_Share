@@ -1,6 +1,6 @@
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import User from '../models/User.js';
+import User from '../models/User.js'; 
 
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -13,7 +13,7 @@ export default function (passport) {
 		clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 		callbackURL: "/api/auth/google/callback" // This must match the route
 	},
-		async (accessToken, refreshToken, profile, done) => {
+		async (_, __, profile, done) => {
 			const newUser = {
 				googleId: profile.id,
 				username: profile.displayName,
@@ -22,8 +22,7 @@ export default function (passport) {
 			};
 
 			try {
-				const [user] = await User.findOrCreate({ googleId: profile.id }, newUser);
-				return done(null, user);
+				const { doc: user } = await User.findOrCreate({ googleId: profile.id }, newUser); return done(null, user);
 			} catch (err) {
 				console.error(err);
 				return done(err, null);
