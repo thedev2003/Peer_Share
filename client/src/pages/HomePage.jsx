@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import HeroSVG from "..\assets\welcome.svg"; // Your illustration SVG
+import HeroSVG from "../assets/welcome.svg"; // Your illustration SVG
 
 // Typing and backspace effect for the main tagline
 function useTypingEffect(text, speed = 80, delay = 1200) {

@@ -101,7 +101,7 @@ export default function MarketplacePage() {
 		<div className="flex">
 			{user && <Sidebar />}
 			<div className="flex-1 p-6">
-				<h1 className="text-4xl font-bold text-indigo-400 mb-2">Hostel Marketplace</h1>
+				<h1 className="text-4xl font-bold text-indigo-400 mb-2">Peer Share</h1>
 				<p className="mb-2">Buy and sell items within your college campus.</p>
 				<TagSearch selectedTag={selectedTag} setTag={setTag} />
 				{/* Item search and listing logic here, filtered by selectedTag */}
