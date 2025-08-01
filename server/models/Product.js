@@ -29,6 +29,10 @@ const productSchema = new mongoose.Schema({
 		ref: 'User', // This creates a reference to the User model
 		required: true,
 	},
+	interestedBuyers: [{
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
+	}],
 	status: {
 		type: String,
 		enum: ['Available', 'Sold'],

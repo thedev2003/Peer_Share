@@ -61,24 +61,40 @@ export const updateProduct = async (req, res) => {
 		if (!product) {
 			return res.status(404).json({ message: 'Product not found' });
 		}
-
 		// Check if the logged-in user is the seller
 		if (product.seller.toString() !== req.user.id) {
 			return res.status(401).json({ message: 'User not authorized' });
 		}
-
 		// Build product object
 		const productFields = { name, description, price, category, status };
 		// Remove undefined fields
 		Object.keys(productFields).forEach(key => productFields[key] === undefined && delete productFields[key]);
-
 		product = await Product.findByIdAndUpdate(
 			req.params.id,
 			{ $set: productFields },
 			{ new: true }
 		);
-
 		res.json(product);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send('Server Error');
+	}
+};
+
+// --- Add user to interestedBuyers queue ---
+export const joinBuyerQueue = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+		if (!product) {
+			return res.status(404).json({ message: 'Product not found' });
+		}
+		// Prevent duplicate entries
+		if (product.interestedBuyers.map(id => id.toString()).includes(req.user.id)) {
+			return res.status(400).json({ message: 'Already in queue' });
+		}
+		product.interestedBuyers.push(req.user.id);
+		await product.save();
+		res.json({ message: 'Added to buyer queue', product });
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send('Server Error');

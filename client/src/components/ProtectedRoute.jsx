@@ -1,16 +1,22 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
-const ProtectedRoute = () => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+/**
+ * Original ProtectedRoute component. It redirects to login if there is no token.
+ */
+const ProtectedRoute = ({ children }) => {
+	const { token, isInitialized } = useSelector((state) => state.auth);
+	const location = useLocation();
 
-  if (isAuthenticated === null) {
-    // Auth state is not yet known, you might want to show a loader
-    return <div>Loading...</div>;
-  }
+	// Wait until the initial auth check is complete before rendering anything.
+	if (!isInitialized) {
+		// You might want to show a loading spinner here.
+		return <div className="min-h-screen w-full flex items-center justify-center bg-gray-900 text-white"></div>;
+	}
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+	// If the check is done and there's no token, redirect to the login page.
+	return token ? children : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
 export default ProtectedRoute;

@@ -11,8 +11,9 @@ import SignUpPage from './pages/SignUpPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import NotificationContainer from './components/ui/NotificationContainer';
 import HomePage from './pages/HomePage';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// A wrapper for routes that require authentication
+// A wrapper for routes that require authentication, restored to its original state.
 function ProtRoute({ children }) {
 	const { token, isInitialized } = useSelector((state) => state.auth);
 	const location = useLocation();

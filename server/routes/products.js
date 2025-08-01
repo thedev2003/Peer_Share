@@ -1,6 +1,6 @@
 import express from 'express';
 import passport from 'passport';
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
+import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, joinBuyerQueue } from '../controllers/productController.js';
 import { parser } from '../config/cloudinary.js'; // Import the multer parser
 
 import noCache from '../middleware/cacheControl.js'; // Import the cache control middleware
@@ -9,13 +9,18 @@ const router = express.Router();
 const authRequired = passport.authenticate('jwt', { session: false });
 
 // --- Public Routes ---
-// Apply no-cache middleware to prevent caching of product data
-router.get('/', noCache, getAllProducts);
-router.get('/:id', noCache, getProductById); 
+// No public routes for products, all require authentication.
 
 // --- Protected Routes ---
-router.post('/', authRequired, parser.single('image'), createProduct);
-router.put('/:id', authRequired, updateProduct);
-router.delete('/:id', authRequired, deleteProduct);
+// Apply no-cache middleware and authentication to all protected routes
+router.get('/', authRequired, noCache, getAllProducts);
+router.get('/:id', authRequired, noCache, getProductById);
+router.post('/', authRequired, noCache, parser.single('image'), createProduct);
+
+// Buyer queue route
+router.post('/:id/interested', authRequired, noCache, joinBuyerQueue);
+
+router.put('/:id', authRequired, noCache, updateProduct);
+router.delete('/:id', authRequired, noCache, deleteProduct);
 
 export default router;

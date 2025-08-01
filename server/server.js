@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import productRoutes from './routes/products.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import chatRoutes from './routes/chats.js';
 import noCache from './middleware/cacheControl.js'; // Import the cache control middleware
 
 // Import configurations
@@ -52,6 +53,7 @@ app.use('/api/auth', authRoutes);
 // Apply the noCache middleware to all protected routes to prevent browser caching.
 app.use('/api/products', noCache, productRoutes);
 app.use('/api/users', noCache, userRoutes); // Add the user routes
+app.use('/api/chats', noCache, chatRoutes);
 
 // --- Initialize Socket.IO Handler ---
 initializeSocket(io);
