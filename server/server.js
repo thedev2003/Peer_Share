@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import productRoutes from './routes/products.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import noCache from './middleware/cacheControl.js'; // Import the cache control middleware
 
 // Import configurations
 import configurePassport from './config/passport.js';
@@ -48,8 +49,9 @@ configurePassport(passport);
 
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/users', userRoutes); // Add the user routes
+// Apply the noCache middleware to all protected routes to prevent browser caching.
+app.use('/api/products', noCache, productRoutes);
+app.use('/api/users', noCache, userRoutes); // Add the user routes
 
 // --- Initialize Socket.IO Handler ---
 initializeSocket(io);

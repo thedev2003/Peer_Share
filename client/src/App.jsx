@@ -65,37 +65,70 @@
 
 
 
-import React from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import HomePage from "./pages/HomePage"; // The new welcome page component
-import MarketplacePage from "./pages/MarketplacePage"; // Your main app/marketplace
-import LoginPage from "./pages/LoginPage";
-import SignUpPage from "./pages/SignUpPage";
-// import other page components as needed
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { fetchUserByToken } from './store/authActions';
+import Navbar from './components/ui/Navbar';
 
-function App() {
-	// Get the current path from React Router
+// Import Pages and Components
+import MarketplacePage from './pages/MarketplacePage';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
+import NotificationContainer from './components/ui/NotificationContainer';
+import HomePage from './pages/HomePage';
+
+// A wrapper for routes that require authentication
+function ProtectedRoute({ children }) {
+	const { token, isInitialized } = useSelector((state) => state.auth);
 	const location = useLocation();
 
-	// If user is on the root path, show the Welcome Page (HomePage)
-	// This does NOT affect other routes or UI flow
-	if (location.pathname === "/") {
-		return <HomePage />;
+	// Wait until the initial auth check is complete
+	if (!isInitialized) {
+		return <div className="min-h-screen w-full flex items-center justify-center bg-gray-900 text-white">Loading...</div>;
 	}
 
-	// For all other routes, use your existing app's routing and logic
-	// Everything else works as before!
+	// If the check is done and there's no token, redirect to login
+	return token ? children : <Navigate to="/login" state={{ from: location }} replace />;
+}
+
+function App() {
+	const dispatch = useDispatch();
+	const { token, isInitialized } = useSelector((state) => state.auth);
+
+	// On initial app load, check for a token and try to authenticate the user
+	useEffect(() => {
+		const tokenFromStorage = localStorage.getItem('token');
+		// We only fetch if the token exists and we haven't already tried to initialize the session.
+		if (tokenFromStorage && !isInitialized) {
+			dispatch(fetchUserByToken(tokenFromStorage));
+		}
+	}, [dispatch, isInitialized]);
+
 	return (
-		<Routes>
-			{/* Example: Route for marketplace */}
-			<Route path="/marketplace" element={<MarketplacePage />} />
+		<div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 font-sans text-gray-800 dark:text-white transition-colors duration-300">
+			{token && <Navbar />}
+			<NotificationContainer />
+			<Routes>
+				{/* Public Routes */}
+				<Route path="/" element={<HomePage />} />
+				<Route path="/login" element={<LoginPage />} />
+				<Route path="/signup" element={<SignUpPage />} />
+				<Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-			{/* Login and Signup routes */}
-			<Route path="/login" element={<LoginPage />} />
-			<Route path="/signup" element={<SignUpPage />} />
-
-			{/* Add other routes below as needed */}
-		</Routes>
+				{/* Protected Routes */}
+				<Route
+					path="/marketplace"
+					element={
+						<ProtectedRoute>
+							<MarketplacePage />
+						</ProtectedRoute>
+					}
+				/>
+			</Routes>
+		</div>
 	);
 }
+
 export default App;

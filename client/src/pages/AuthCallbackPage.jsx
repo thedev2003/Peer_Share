@@ -17,8 +17,8 @@ export default function AuthCallbackPage() {
 		if (token) {
 			// If a token is found, dispatch the action to set it in the Redux store
 			dispatch(setToken(token));
-			// Redirect the user to the homepage
-			navigate('/');
+			// Redirect the user to the marketplace
+			navigate('/marketplace');
 		} else {
 			// If no token is found, redirect to the login page with an error
 			navigate('/login?error=auth_failed');

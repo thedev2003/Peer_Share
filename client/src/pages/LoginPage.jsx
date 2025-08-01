@@ -18,7 +18,7 @@ export default function LoginPage() {
 		dispatch(loginUser({ email, password }))
 			.unwrap()
 			.then(() => {
-				navigate('/'); // Redirect to homepage on successful login
+				navigate('/marketplace'); // Redirect to marketplace on successful login
 			})
 			.catch((err) => {
 				// Error is handled by the slice and displayed from the store state
