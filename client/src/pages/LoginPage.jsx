@@ -12,6 +12,7 @@ export default function LoginPage() {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { status, error } = useSelector((state) => state.auth);
+	const SERVER_URL = process.env.RENDER_URL;
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -27,7 +28,7 @@ export default function LoginPage() {
 
 	const handleGoogleSignIn = () => {
 		// This will open the Google OAuth consent screen in a new window
-		window.open(`${process.env.RENDER_URL}/api/auth/google`, '_self');
+		window.open(`${SERVER_URL}/api/auth/google`, '_self');
 		// window.open('http://localhost:5000/api/auth/google', '_self');
 	}
 

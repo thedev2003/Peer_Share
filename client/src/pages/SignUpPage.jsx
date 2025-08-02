@@ -13,6 +13,7 @@ export default function SignUpPage() {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { status, error } = useSelector((state) => state.auth);
+	const SERVER_URL = process.env.RENDER_URL;
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -25,7 +26,7 @@ export default function SignUpPage() {
 	};
 
 	const handleGoogleSignIn = () => {
-		window.open(`${process.env.RENDER_URL}/api/auth/google`, '_self');
+		window.open(`${SERVER_URL}/api/auth/google`, '_self');
 	};
 
 	return (
