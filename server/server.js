@@ -21,7 +21,7 @@ import initializeSocket from './socket/socketHandler.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.VERCEL_URL;
+// const CLIENT_URL = process.env.VERCEL_URL;
 
 // Create HTTP server and Socket.IO server
 const httpServer = http.createServer(app);
