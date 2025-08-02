@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import io from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:5000'; // Change if needed
+// const SOCKET_URL = 'http://localhost:5000'; // Change if needed
+const SOCKET_URL = `${process.env.RENDER_URL}`;
 
 export default function ChatBox({ chatId, product, onClose }) {
 	const { user } = useSelector(state => state.auth);

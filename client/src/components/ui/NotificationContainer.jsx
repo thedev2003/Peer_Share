@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, X } from 'lucide-react';
-import { removeNotification } from '../../store/notificationsSlice';
+import { removeNotification } from '../../store/NotificationsSlice';
 
 // This component will render all active notifications.
 export default function NotificationContainer() {

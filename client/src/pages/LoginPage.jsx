@@ -27,8 +27,9 @@ export default function LoginPage() {
 
 	const handleGoogleSignIn = () => {
 		// This will open the Google OAuth consent screen in a new window
-		window.open('http://localhost:5000/api/auth/google', '_self');
-	};
+		window.open(`${process.env.RENDER_URL}/api/auth/google`, '_self');
+		// window.open('http://localhost:5000/api/auth/google', '_self');
+	}
 
 	return (
 		<AuthLayout title="Welcome Back" subtitle="Sign in to continue to the marketplace.">

@@ -25,7 +25,7 @@ export default function SignUpPage() {
 	};
 
 	const handleGoogleSignIn = () => {
-		window.open('http://localhost:5000/api/auth/google', '_self');
+		window.open(`${process.env.RENDER_URL}/api/auth/google`, '_self');
 	};
 
 	return (
