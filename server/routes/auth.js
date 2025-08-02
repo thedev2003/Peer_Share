@@ -18,7 +18,7 @@ router.get(
 	'/google/callback',
 	passport.authenticate('google', {
 		// failureRedirect: `http://localhost:5173/login`, // Redirect on fail
-		failureRedirect: `${CLIENT_URL}/login`, // Redirect on fail
+		failureRedirect: `${CLIENT_URL}`, // Redirect on fail
 		session: false // We are using JWTs, not sessions
 	}),
 	(req, res) => {
