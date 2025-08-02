@@ -13,7 +13,7 @@ export default function SignUpPage() {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const { status, error } = useSelector((state) => state.auth);
-	const SERVER_URL = process.env.RENDER_URL;
+	const SERVER_URL = import.meta.env.VITE_RENDER_URL;
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

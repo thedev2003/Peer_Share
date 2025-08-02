@@ -6,7 +6,7 @@ export const loginUser = createAsyncThunk(
 	'auth/loginUser',
 	async ({ email, password }, { rejectWithValue }) => {
 		try {
-			const response = await axios.post(`${process.env.RENDER_URL}/api/auth/login`, { email, password });
+			const response = await axios.post(`${import.meta.env.VITE_RENDER_URL}/api/auth/login`, { email, password });
 			localStorage.setItem('token', response.data.token);
 			return response.data.token;
 		} catch (err) {
@@ -20,7 +20,7 @@ export const registerUser = createAsyncThunk(
 	'auth/registerUser',
 	async ({ username, email, password }, { rejectWithValue }) => {
 		try {
-			const response = await axios.post(`${process.env.RENDER_URL}/api/auth/register`, { username, email, password });
+			const response = await axios.post(`${import.meta.env.VITE_RENDER_URL}/api/auth/register`, { username, email, password });
 			localStorage.setItem('token', response.data.token);
 			return response.data.token;
 		} catch (err) {
@@ -35,7 +35,7 @@ export const fetchUserByToken = createAsyncThunk(
 	async (token, { rejectWithValue }) => {
 		try {
 			const config = { headers: { Authorization: `Bearer ${token}` } };
-			const response = await axios.get(`${process.env.RENDER_URL}/api/users/me`, config);
+			const response = await axios.get(`${import.meta.env.VITE_RENDER_URL}/api/users/me`, config);
 			return { user: response.data, token };
 		} catch (err) {
 			return rejectWithValue('Session expired or token is invalid.');
