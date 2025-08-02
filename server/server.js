@@ -21,14 +21,14 @@ import initializeSocket from './socket/socketHandler.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-// const CLIENT_URL = process.env.VERCEL_URL;
+const CLIENT_URL = process.env.VERCEL_URL;
 
 // Create HTTP server and Socket.IO server
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
 	cors: {
-		origin: "http://localhost:5173", // Allow frontend to connect
-		// origin: CLIENT_URL, // Allow frontend to connect
+		// origin: "http://localhost:5173", // Allow frontend to connect
+		origin: CLIENT_URL, // Allow frontend to connect
 		methods: ["GET", "POST"],
 	}
 });
@@ -40,8 +40,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 // --- Core Middleware ---
 app.use(cors({
-	origin: 'http://localhost:5173',
-	// origin: CLIENT_URL,
+	// origin: 'http://localhost:5173',
+	origin: CLIENT_URL,
 	credentials: true
 }));
 app.use(express.json());
