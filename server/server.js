@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import passport from 'passport';
 import mongoose from 'mongoose';
-import http from 'http';
+import https from 'https';
 import { Server } from 'socket.io';
 
 // Import route handlers
@@ -24,8 +24,8 @@ const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.VERCEL_URL;
 
 // Create HTTP server and Socket.IO server
-const httpServer = http.createServer(app);
-const io = new Server(httpServer, {
+const httpsServer = https.createServer(app);
+const io = new Server(httpsServer, {
 	cors: {
 		// origin: "http://localhost:5173", // Allow frontend to connect
 		origin: CLIENT_URL, // Allow frontend to connect
@@ -62,6 +62,6 @@ app.use('/api/chats', noCache, chatRoutes);
 initializeSocket(io);
 
 // --- Server Listener ---
-httpServer.listen(PORT, () => {
+httpsServer.listen(PORT, () => {
 	console.log(`Server is running on port: ${PORT}`);
 });
