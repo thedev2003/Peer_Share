@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-// import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import passport from 'passport';
 import mongoose from 'mongoose';
 import http from 'http';
@@ -17,13 +17,7 @@ import noCache from './middleware/cacheControl.js'; // Import the cache control 
 import configurePassport from './config/passport.js';
 import initializeSocket from './socket/socketHandler.js';
 
-// --- Initial Configuration ---
-const dotenv = require('dotenv');
 
-// Conditionally load .env file only in development
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config();
-}
 const app = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.VERCEL_URL;
