@@ -14,14 +14,16 @@ router.post('/logout', logoutUser);
 // --- Google OAuth Authentication ---
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get(
-	'/google/callback',
+router.get('/google/callback',
 	passport.authenticate('google', {
 		// failureRedirect: `http://localhost:5173/login`, // Redirect on fail
 		failureRedirect: `${CLIENT_URL}/login`, // Redirect on fail
 		session: false // We are using JWTs, not sessions
 	}),
 	(req, res) => {
+		if(!req.user) {
+			return res.redirect(`${CLIENT_URL}/login?error=auth_failed`);
+		}
 		// On success, Passport attaches the user to req.user.
 		const payload = { id: req.user.id, username: req.user.username };
 
