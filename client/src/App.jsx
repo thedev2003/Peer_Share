@@ -50,7 +50,7 @@ function App() {
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignUpPage />} />
 				<Route path="/auth/callback" element={<AuthCallbackPage />} />
-				<Route path="/auth/google/callback" element={<AuthCallbackPage />} />
+				<Route path="/api/auth/google/callback" element={<AuthCallbackPage />} />
 
 				{/* Protected Routes */}
 				<Route path="/marketplace" element={<ProtRoute><MarketplacePage /></ProtRoute>} />
