@@ -11,7 +11,7 @@ import SignUpPage from './pages/SignUpPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import NotificationContainer from './components/ui/NotificationContainer';
 import HomePage from './pages/HomePage';
-// import ProtectedRoute from './components/ProtectedRoute';
+
 
 // A wrapper for routes that require authentication, restored to its original state.
 function ProtRoute({ children }) {
@@ -49,6 +49,7 @@ function App() {
 				<Route path="/" element={<HomePage />} />
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/signup" element={<SignUpPage />} />
+				<Route path="/auth/callback" element={<AuthCallbackPage />} />
 				<Route path="/auth/google/callback" element={<AuthCallbackPage />} />
 
 				{/* Protected Routes */}
