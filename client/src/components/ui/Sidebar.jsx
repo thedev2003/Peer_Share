@@ -1,12 +1,36 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
+// Sidebar navigation for marketplace and user product views
 export default function Sidebar() {
-	// Only show on homepage after login
+	const location = useLocation();
 	return (
-		<aside className="w-64 bg-gray-900 text-white p-6 rounded-lg shadow-md flex flex-col gap-4">
-			<Link to="/my-items" className="hover:text-indigo-400">My Items for Sale</Link>
-			<Link to="/sold-items" className="hover:text-indigo-400">My Items Sold</Link>
-			<Link to="/purchased-items" className="hover:text-indigo-400">Items Purchased</Link>
-		</aside>
+		<nav className="bg-gray-900 text-white min-h-screen p-6 w-64">
+			<ul className="space-y-4">
+				<li>
+					<Link
+						to="/my-items"
+						className={`block px-3 py-2 rounded ${location.pathname === '/my-items' ? 'bg-indigo-700' : 'hover:bg-gray-800'}`}
+					>
+						My Items for Sale
+					</Link>
+				</li>
+				<li>
+					<Link
+						to="/sold-items"
+						className={`block px-3 py-2 rounded ${location.pathname === '/sold-items' ? 'bg-indigo-700' : 'hover:bg-gray-800'}`}
+					>
+						My Items Sold
+					</Link>
+				</li>
+				<li>
+					<Link
+						to="/purchased-items"
+						className={`block px-3 py-2 rounded ${location.pathname === '/purchased-items' ? 'bg-indigo-700' : 'hover:bg-gray-800'}`}
+					>
+						Items Purchased
+					</Link>
+				</li>
+			</ul>
+		</nav>
 	);
 }

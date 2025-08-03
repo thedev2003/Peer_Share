@@ -12,58 +12,12 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import NotificationContainer from './components/ui/NotificationContainer';
 import HomePage from './pages/HomePage';
 
+// Import dummy pages for other routes (these can be replaced with real logic later)
+const DummyPage = ({ title }) => (
+	<div className="p-6 text-white text-2xl">{title} (Coming soon)</div>
+);
 
-// A wrapper for routes that require authentication, restored to its original state.
-// function ProtRoute({ children }) {
-// 	const { token, isInitialized } = useSelector((state) => state.auth);
-// 	const location = useLocation();
-
-// 	// Wait until the initial auth check is complete
-// 	if (!isInitialized) {
-// 		return <div className="min-h-screen w-full flex items-center justify-center bg-gray-900 text-white"></div>;
-// 	}
-
-// 	// If the check is done and there's no token, redirect to login
-// 	return token ? children : <Navigate to="/login" state={{ from: location }} replace />;
-// }
-
-// function App() {
-// 	const dispatch = useDispatch();
-// 	const { token, isInitialized } = useSelector((state) => state.auth);
-
-// 	// On initial app load, check for a token and try to authenticate the user
-// 	// We only fetch if the token exists and we haven't already tried to initialize the session.
-// 	useEffect(() => {
-// 		const tokenFromStorage = localStorage.getItem('token');
-// 		if (tokenFromStorage && !isInitialized) {
-// 			dispatch(fetchUserByToken(tokenFromStorage));
-// 		}
-// 	}, [dispatch, isInitialized]);
-
-// 	return (
-// 		<div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 font-sans text-gray-800 dark:text-white transition-colors duration-300">
-// 			{token && <Navbar />}
-// 			<NotificationContainer />
-// 			<Routes>
-// 				{/* Public Routes */}
-// 				<Route path="/" element={<HomePage />} />
-// 				<Route path="/login" element={<LoginPage />} />
-// 				<Route path="/signup" element={<SignUpPage />} />
-// 				<Route path="/auth/callback" element={<AuthCallbackPage />} />
-// 				<Route path="/api/auth/google/callback" element={<AuthCallbackPage />} />
-
-// 				{/* Protected Routes */}
-// 				<Route path="/marketplace" element={<ProtRoute><MarketplacePage /></ProtRoute>} />
-// 			</Routes>
-// 		</div>
-// 	);
-// }
-
-// export default App;
-
-
-
-
+// Protected Route logic (unchanged from previous version)
 function ProtRoute({ children }) {
 	const { token, isInitialized } = useSelector((state) => state.auth);
 	const location = useLocation();
@@ -107,7 +61,11 @@ function App() {
 				<Route path="/signup" element={<SignUpPage />} />
 				<Route path="/auth/callback" element={<AuthCallbackPage />} />
 				<Route path="/api/auth/google/callback" element={<AuthCallbackPage />} />
+				{/* Protected Marketplace and extended protected routes */}
 				<Route path="/marketplace" element={<ProtRoute><MarketplacePage /></ProtRoute>} />
+				<Route path="/my-items" element={<ProtRoute><MarketplacePage /></ProtRoute>} />
+				<Route path="/sold-items" element={<ProtRoute><DummyPage title="My Items Sold" /></ProtRoute>} />
+				<Route path="/purchased-items" element={<ProtRoute><DummyPage title="Items Purchased" /></ProtRoute>} />
 			</Routes>
 		</div>
 	);

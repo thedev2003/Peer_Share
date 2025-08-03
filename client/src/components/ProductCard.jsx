@@ -1,40 +1,39 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-// FIX: Import Heart icon from react-icons
 import { FaHeart } from 'react-icons/fa';
-// If you also use MessageCircle, import from react-icons
 import { FiMessageCircle } from 'react-icons/fi';
+import ChatBox from './ChatBox'; // Make sure this path is correct
 
-// ProductCard component renders a single product with seller actions
+// Renders a single product card with details and actions
 export default function ProductCard({ product, onProductRemoved }) {
-	// Local state for favorite, queue, chat, and error
+	// Local UI state
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [joining, setJoining] = useState(false);
 	const [joined, setJoined] = useState(false);
 	const [error, setError] = useState(null);
 	const [showChat, setShowChat] = useState(false);
 
-	// User and token from Redux store
+	// Redux state for current user
 	const { user, token } = useSelector(state => state.auth);
 
-	// Destructure product fields (with defaults for robustness)
+	// Safely destructure product fields with defaults
 	const {
 		_id,
 		name = 'No Name',
 		price = 0,
 		category = 'Uncategorized',
-		seller = 'Unknown',
-		imageUrl = 'https://placehold.co/600x400/cccccc/ffffff?text=No+Image',
+		seller = {},
+		imageUrl = 'https://placehold.co/300x200/cccccc/ffffff?text=No+Image',
 		interestedBuyers = []
 	} = product;
 
-	// Logic: check if current user is in queue or is the seller
+	// Check if current user is seller or in buyer queue
 	const isInQueue = user && interestedBuyers.some(buyer => buyer === user._id);
 	const isSeller = user && user._id === (seller._id || seller);
 	const canChat = isSeller || isInQueue;
 
-	// Handler: Join buyer queue
+	// Handle "Join Buyer Queue" action
 	const handleJoinQueue = async () => {
 		setJoining(true);
 		setError(null);
@@ -50,20 +49,18 @@ export default function ProductCard({ product, onProductRemoved }) {
 		}
 	};
 
-	// Handler: Open chat box for product
-	const handleOpenChat = async () => {
+	// Handle "Open Chat" action
+	const handleOpenChat = () => {
 		setShowChat(true);
 	};
 
-	// Handler: Remove product from sale (seller only)
+	// Handle "Remove from Sale" action
 	const handleRemove = async () => {
-		// Confirm action
 		if (!window.confirm('Are you sure you want to remove this item from sale?')) return;
 		try {
 			await axios.delete(`/api/products/${_id}`, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
-			// Notify parent that product was removed
 			if (onProductRemoved) onProductRemoved(_id);
 		} catch (err) {
 			alert(err.response?.data?.message || 'Failed to remove product');
@@ -71,78 +68,73 @@ export default function ProductCard({ product, onProductRemoved }) {
 	};
 
 	return (
-		<div className="w-full rounded-2xl overflow-hidden group transition-all duration-300 ease-in-out transform hover:scale-105 hover:-translate-y-1">
-			{/* Card visual wrapper */}
-			<div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-1 shadow-2xl shadow-black/40 h-full flex flex-col">
-
-				{/* Product image at top */}
-				<div className="relative rounded-xl overflow-hidden">
-					<img
-						src={imageUrl}
-						alt={name}
-						onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/600x400/ef4444/ffffff?text=Image+Error'; }}
-						className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-					/>
-					{/* Visuals: gradient overlay and favorite button */}
-					<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10"></div>
-					<button
-						onClick={() => setIsFavorited(!isFavorited)}
-						className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-lg transition-colors duration-300 hover:bg-white/30"
-						aria-label="Favorite"
-					>
-						{/* Heart icon from react-icons */}
-						<FaHeart className={`w-5 h-5 transition-all ${isFavorited ? 'text-red-500' : 'text-white'}`} />
-					</button>
+		<div className="w-72 rounded-xl overflow-hidden group shadow-lg bg-gray-800 border border-gray-700 mx-2 my-4">
+			{/* Product image */}
+			<div className="relative h-40">
+				<img
+					src={imageUrl}
+					alt={name}
+					onError={e => { e.target.onerror = null; e.target.src = 'https://placehold.co/300x200/ef4444/ffffff?text=Image+Error'; }}
+					className="w-full h-full object-cover"
+				/>
+				<button
+					onClick={() => setIsFavorited(!isFavorited)}
+					className="absolute top-2 right-2 p-2 rounded-full bg-black/30 hover:bg-black/50"
+					aria-label="Favorite"
+				>
+					<FaHeart className={`w-5 h-5 ${isFavorited ? 'text-red-500' : 'text-white'}`} />
+				</button>
+			</div>
+			{/* Product info */}
+			<div className="p-3">
+				{/* Product details in one line: name, price, tag */}
+				<div className="flex items-center justify-between gap-2 mb-1">
+					<span className="font-semibold text-white truncate">{name}</span>
+					<span className="text-indigo-400 font-bold text-sm">₹{price}</span>
+					<span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">{category}</span>
 				</div>
-
-				{/* Product info and actions */}
-				<div className="p-4 flex-grow flex flex-col">
-					{/* Name, price, category */}
-					<h3 className="text-lg font-bold text-white mb-1">{name}</h3>
-					<div className="text-indigo-300 font-semibold mb-2">₹{price}</div>
-					<div className="text-xs text-gray-300 mb-3">{category}</div>
-
-					{/* Error display if any */}
-					{error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-
-					{/* Buyer/Seller actions */}
+				{/* Seller name on second line */}
+				<div className="mb-2 text-xs text-gray-400">
+					Seller: {seller.username ? seller.username : typeof seller === 'string' ? seller : 'Unknown'}
+				</div>
+				{/* Error message if any */}
+				{error && <div className="text-red-500 text-xs mb-2">{error}</div>}
+				{/* Action buttons spaced horizontally on third row */}
+				<div className="flex gap-2 justify-between mt-2">
+					{isSeller && (
+						<button
+							className="flex-1 px-2 py-2 rounded bg-red-600 text-white text-sm font-semibold hover:bg-red-700"
+							onClick={handleRemove}
+						>
+							Remove from Sale
+						</button>
+					)}
 					{!isSeller && !isInQueue && (
 						<button
-							className="w-full px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+							className="flex-1 px-2 py-2 rounded bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700"
 							onClick={handleJoinQueue}
 							disabled={joining}
 						>
 							{joining ? 'Joining...' : 'Join Buyer Queue'}
 						</button>
 					)}
-					{isSeller && (
-						<button
-							className="mt-2 w-full px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
-							onClick={handleRemove}
-						>
-							Remove from Sale
-						</button>
-					)}
 					{canChat && (
 						<button
-							className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+							className="flex-1 px-2 py-2 rounded bg-violet-700 text-white text-sm font-semibold flex items-center justify-center gap-1 hover:bg-violet-800"
 							onClick={handleOpenChat}
 						>
-							{/* MessageCircle icon from react-icons */}
-							<FiMessageCircle size={18} />
-							<span>Open Chat</span>
+							<FiMessageCircle size={16} /> Open Chat
 						</button>
 					)}
-
-					{/* Chat modal if open */}
-					{showChat && (
-						<ChatBox
-							chatId={_id}
-							product={product}
-							onClose={() => setShowChat(false)}
-						/>
-					)}
 				</div>
+				{/* Chat modal */}
+				{showChat && (
+					<ChatBox
+						chatId={_id}
+						product={product}
+						onClose={() => setShowChat(false)}
+					/>
+				)}
 			</div>
 		</div>
 	);

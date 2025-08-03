@@ -6,12 +6,13 @@ import WelcomeNotification from '../components/ui/WelcomeNotification';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
-// Main marketplace page showing products, tags, and selling modal
+// Main marketplace page -- filters products for "my items for sale" if on /my-items
 export default function MarketplacePage() {
 	const { user } = useSelector(state => state.auth);
+	const location = useLocation();
 
-	// Local states for tag, products, loading, error, modal visibility, welcome notification
 	const [selectedTag, setTag] = useState(null);
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -19,7 +20,7 @@ export default function MarketplacePage() {
 	const [showModal, setShowModal] = useState(false);
 	const [showWelcome, setShowWelcome] = useState(false);
 
-	// Fetch products from backend on mount
+	// Fetch products from backend
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
@@ -37,7 +38,7 @@ export default function MarketplacePage() {
 		fetchProducts();
 	}, []);
 
-	// Show welcome notification only once per session
+	// Show welcome notification only once per user session
 	useEffect(() => {
 		if (user?.username) {
 			const welcomedKey = `welcomed_${user.username}`;
@@ -48,65 +49,58 @@ export default function MarketplacePage() {
 		}
 	}, [user?.username]);
 
-	// Handler to clear tag filter
 	const clearTag = () => setTag(null);
 
-	// Filter products by selected tag if any
-	const filteredProducts = selectedTag
-		? products.filter(product => product.category === selectedTag)
-		: products;
+	// Routing logic for "my items for sale"
+	let pageProducts = products;
+	if (location.pathname === "/my-items" && user) {
+		pageProducts = products.filter(
+			p => p.seller && (p.seller._id === user._id || p.seller === user._id)
+		);
+	}
 
-	// Handler: add new product to the list after successful modal form submission
+	const filteredProducts = selectedTag
+		? pageProducts.filter(product => product.category === selectedTag)
+		: pageProducts;
+
 	const handleProductAdded = (newProduct) => {
 		setProducts(prev => [newProduct, ...prev]);
 	};
 
-	// Handler: remove product from list after successful deletion
 	const handleProductRemoved = (removedId) => {
 		setProducts(prev => prev.filter(p => p._id !== removedId));
 	};
 
 	return (
 		<div className="flex min-h-screen bg-gray-900 text-white">
-			{/* Sidebar for navigation */}
 			{user && <Sidebar />}
 			<div className="flex-1 p-6 relative">
-				{/* Welcome notification at the top, showing for 4 seconds, only once per session */}
 				{user?.username && showWelcome && (
 					<WelcomeNotification name={user.username} />
 				)}
-
-				{/* Page title and tag search */}
 				<h1 className="text-4xl font-bold text-indigo-400 mb-2">Peer Share</h1>
 				<p className="mb-2">Buy and sell items within your college campus.</p>
 				<TagSearch selectedTag={selectedTag} setTag={setTag} clearTag={clearTag} />
-
-				{/* Sell Item Button (opens modal) */}
 				<button
 					className="fixed bottom-8 right-8 px-6 py-3 rounded-full font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg transition-all z-50"
 					onClick={() => setShowModal(true)}
 				>
 					Sell Your Item
 				</button>
-
-				{/* Modal for adding new product */}
 				{showModal && (
 					<AddProductModal
 						onClose={() => setShowModal(false)}
 						onProductAdded={handleProductAdded}
 					/>
 				)}
-
-				{/* Loading and error states */}
 				{loading ? (
 					<div className="text-center text-gray-400">Loading products...</div>
 				) : error ? (
 					<div className="text-center text-red-500 mb-4">{error}</div>
 				) : (
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-						{/* Render product cards or no products message */}
+					<div className="flex flex-wrap gap-6">
 						{filteredProducts.length === 0 ? (
-							<div className="col-span-full text-center text-gray-600">No products found.</div>
+							<div className="text-gray-500">No products found.</div>
 						) : (
 							filteredProducts.map(product => (
 								<ProductCard
