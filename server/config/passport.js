@@ -1,6 +1,6 @@
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import User from '../models/User.js'; 
+import User from '../models/User.js';
 
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
@@ -11,7 +11,8 @@ export default function (passport) {
 	passport.use(new GoogleStrategy({
 		clientID: process.env.GOOGLE_CLIENT_ID,
 		clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-		callbackURL: `${process.env.VERCEL_URL}/api/auth/google/callback`
+		callbackURL: "https://peer-share-d613.onrender.com/api/auth/google/callback"
+		// callbackURL: `${process.env.VERCEL_URL}/api/auth/google/callback`
 		// callbackURL: "/api/auth/google/callback" // This must match the route
 	},
 		async (_, __, profile, done) => {
