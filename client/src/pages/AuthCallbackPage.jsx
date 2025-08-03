@@ -72,11 +72,10 @@ export default function AuthCallbackPage() {
 
 	useEffect(() => {
 		const params = new URLSearchParams(location.search);
-		console.log("AuthCallbackPage: location.search =", location.search);
-
 		const token = params.get('token');
-		const code = params.get('code');
-		console.log("AuthCallbackPage: token =", token, "code =", code);
+
+		console.log("AuthCallbackPage: location.search =", location.search);
+		console.log("AuthCallbackPage: token =", token);
 
 		if (token) {
 			console.log("AuthCallbackPage: Dispatching setToken with token");
@@ -86,36 +85,7 @@ export default function AuthCallbackPage() {
 			return;
 		}
 
-		if (code) {
-			console.log("AuthCallbackPage: Found code, calling backend to exchange for token");
-			fetch(`/api/auth/google/exchange?code=${code}`, {
-				method: 'GET',
-				credentials: 'include',
-			})
-				.then(res => {
-					console.log("AuthCallbackPage: Received response from backend, status =", res.status);
-					return res.json();
-				})
-				.then(data => {
-					console.log("AuthCallbackPage: Backend returned data =", data);
-					if (data.token) {
-						console.log("AuthCallbackPage: Dispatching setToken with token from backend");
-						dispatch(setToken(data.token));
-						console.log("AuthCallbackPage: Navigating to /marketplace");
-						navigate('/marketplace');
-					} else {
-						console.log("AuthCallbackPage: No token in backend response, redirecting to login");
-						navigate('/login?error=auth_failed');
-					}
-				})
-				.catch((err) => {
-					console.error("AuthCallbackPage: Error calling backend exchange endpoint", err);
-					navigate('/login?error=auth_failed');
-				});
-			return;
-		}
-
-		console.log("AuthCallbackPage: Neither token nor code present, redirecting to login");
+		console.log("AuthCallbackPage: No token present, redirecting to login");
 		navigate('/login?error=auth_failed');
 	}, [dispatch, location, navigate]);
 
