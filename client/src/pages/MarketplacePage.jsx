@@ -15,6 +15,9 @@ export default function MarketplacePage() {
 	const [error, setError] = useState(null);
 	const [showModal, setShowModal] = useState(false);
 
+	// State to control one-time display of welcome notification
+	const [showWelcome, setShowWelcome] = useState(false);
+
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
@@ -29,6 +32,17 @@ export default function MarketplacePage() {
 		};
 		fetchProducts();
 	}, []);
+
+	// Show welcome notification only once per session
+	useEffect(() => {
+		if (user?.username) {
+			const welcomedKey = `welcomed_${user.username}`;
+			if (!sessionStorage.getItem(welcomedKey)) {
+				setShowWelcome(true);
+				sessionStorage.setItem(welcomedKey, "true");
+			}
+		}
+	}, [user?.username]);
 
 	const clearTag = () => setTag(null);
 
@@ -46,8 +60,8 @@ export default function MarketplacePage() {
 		<div className="flex min-h-screen bg-gray-900 text-white">
 			{user && <Sidebar />}
 			<div className="flex-1 p-6 relative">
-				{/* Welcome notification at the top, showing for 4 seconds */}
-				{user?.username && (
+				{/* Welcome notification at the top, showing for 4 seconds, only once per session */}
+				{user?.username && showWelcome && (
 					<WelcomeNotification name={user.username} />
 				)}
 
