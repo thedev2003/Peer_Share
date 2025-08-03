@@ -9,10 +9,9 @@ import axios from 'axios';
 
 // Main marketplace page showing products, tags, and selling modal
 export default function MarketplacePage() {
-	// Get logged-in user from Redux store
 	const { user } = useSelector(state => state.auth);
 
-	// Local states: tag, products, loading, error, modal visibility, welcome notif
+	// Local states for tag, products, loading, error, modal visibility, welcome notification
 	const [selectedTag, setTag] = useState(null);
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -20,11 +19,13 @@ export default function MarketplacePage() {
 	const [showModal, setShowModal] = useState(false);
 	const [showWelcome, setShowWelcome] = useState(false);
 
-	// Fetch products from server on mount
+	// Fetch products from backend on mount
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
-				const response = await axios.get('/api/products');
+				const API_URL = import.meta.env.VITE_RENDER_URL || '';
+				const url = `${API_URL.replace(/\/$/, '')}/api/products`;
+				const response = await axios.get(url);
 				const data = Array.isArray(response.data) ? response.data : [];
 				setProducts(data);
 			} catch (err) {

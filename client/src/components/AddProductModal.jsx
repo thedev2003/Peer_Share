@@ -50,15 +50,17 @@ export default function AddProductModal({ onClose, onProductAdded }) {
 		submissionData.append('image', image);
 
 		try {
-			// Post to server's /api/products endpoint
-			const response = await axios.post('/api/products', submissionData, {
+			// Use full backend API URL from environment variable
+			const API_URL = import.meta.env.VITE_RENDER_URL || '';
+			// Ensure trailing slash is not present
+			const url = `${API_URL.replace(/\/$/, '')}/api/products`;
+			const response = await axios.post(url, submissionData, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 					'Authorization': `Bearer ${token}`,
 				},
 			});
-			// Notify parent component on success
-			onProductAdded(response.data);
+			onProductAdded(response.data); // Notify parent on success
 			onClose();
 		} catch (err) {
 			setError(err.response?.data?.message || 'Failed to create product. Please try again.');
@@ -68,26 +70,25 @@ export default function AddProductModal({ onClose, onProductAdded }) {
 	};
 
 	return (
-		// Outer modal wrapper to center and overlay on page
+		// Modal overlay and form
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-			{/* Modal box with max width */}
 			<div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-4">
 				<h2 className="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-white">Sell Your Item</h2>
 				{error && <p className="bg-red-100 text-red-700 p-2 rounded mb-4">{error}</p>}
 				<form onSubmit={handleSubmit} className="space-y-4">
-					{/* Product Name input */}
+					{/* Product name input */}
 					<div>
 						<label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Name</label>
 						<input type="text" name="name" id="name" value={formData.name} onChange={handleChange} required
 							className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" />
 					</div>
-					{/* Product Description input */}
+					{/* Description input */}
 					<div>
 						<label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
 						<textarea name="description" id="description" value={formData.description} onChange={handleChange} required rows="3"
 							className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
 					</div>
-					{/* Price and Category inputs in a row */}
+					{/* Price and Category inputs */}
 					<div className="flex gap-4">
 						<div className="flex-1">
 							<label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price (₹)</label>
@@ -102,11 +103,10 @@ export default function AddProductModal({ onClose, onProductAdded }) {
 							</select>
 						</div>
 					</div>
-					{/* Product image file input */}
+					{/* Product Image input */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Image</label>
 						<div className="flex items-center gap-2 mt-1">
-							{/* Actual file input hidden */}
 							<input
 								type="file"
 								name="image"
@@ -116,7 +116,6 @@ export default function AddProductModal({ onClose, onProductAdded }) {
 								accept="image/*"
 								style={{ display: 'none' }}
 							/>
-							{/* Button triggers file input */}
 							<button
 								type="button"
 								onClick={() => document.getElementById('image').click()}
@@ -124,13 +123,12 @@ export default function AddProductModal({ onClose, onProductAdded }) {
 							>
 								Choose File
 							</button>
-							{/* Show selected file name */}
 							<span className="text-sm text-gray-500">
 								{image ? image.name : 'No file chosen'}
 							</span>
 						</div>
 					</div>
-					{/* Modal action buttons */}
+					{/* Action buttons */}
 					<div className="flex justify-end gap-4 pt-4">
 						<button type="button" onClick={onClose} disabled={loading}
 							className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50">
