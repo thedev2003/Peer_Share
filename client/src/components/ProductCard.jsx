@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-// ... (other imports, e.g., icons, ChatBox, etc.)
+// FIX: Import Heart icon from react-icons
+import { FaHeart } from 'react-icons/fa';
+// If you also use MessageCircle, import from react-icons
+import { FiMessageCircle } from 'react-icons/fi';
 
 // ProductCard component renders a single product with seller actions
 export default function ProductCard({ product, onProductRemoved }) {
@@ -87,8 +90,8 @@ export default function ProductCard({ product, onProductRemoved }) {
 						className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-lg transition-colors duration-300 hover:bg-white/30"
 						aria-label="Favorite"
 					>
-						{/* Heart icon */}
-						<Heart className={`w-5 h-5 transition-all ${isFavorited ? 'text-red-500 fill-current' : 'text-white'}`} />
+						{/* Heart icon from react-icons */}
+						<FaHeart className={`w-5 h-5 transition-all ${isFavorited ? 'text-red-500' : 'text-white'}`} />
 					</button>
 				</div>
 
@@ -125,8 +128,8 @@ export default function ProductCard({ product, onProductRemoved }) {
 							className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
 							onClick={handleOpenChat}
 						>
-							{/* MessageCircle icon */}
-							<MessageCircle size={18} />
+							{/* MessageCircle icon from react-icons */}
+							<FiMessageCircle size={18} />
 							<span>Open Chat</span>
 						</button>
 					)}
