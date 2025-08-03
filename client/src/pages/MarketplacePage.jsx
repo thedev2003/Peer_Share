@@ -2,6 +2,7 @@ import Sidebar from '../components/ui/Sidebar';
 import TagSearch from '../components/ui/TagSearch';
 import ProductCard from '../components/ProductCard';
 import AddProductModal from '../components/AddProductModal';
+import WelcomeNotification from '../components/ui/WelcomeNotification';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -29,15 +30,12 @@ export default function MarketplacePage() {
 		fetchProducts();
 	}, []);
 
-	const clearTag = () => {
-		setTag(null);
-	};
+	const clearTag = () => setTag(null);
 
-// Filter products by selected tag, always ensure products is an array
-const safeProducts = Array.isArray(products) ? products : [];
-const filteredProducts = selectedTag
-	? safeProducts.filter(product => product.category === selectedTag)
-	: safeProducts;
+	// Filter products by selected tag
+	const filteredProducts = selectedTag
+		? products.filter(product => product.category === selectedTag)
+		: products;
 
 	// Handle new product addition
 	const handleProductAdded = (newProduct) => {
@@ -45,19 +43,26 @@ const filteredProducts = selectedTag
 	};
 
 	return (
-		<div className="flex">
+		<div className="flex min-h-screen bg-gray-900 text-white">
 			{user && <Sidebar />}
-			<div className="flex-1 p-6">
+			<div className="flex-1 p-6 relative">
+				{/* Welcome notification at the top, showing for 4 seconds */}
+				{user?.username && (
+					<WelcomeNotification name={user.username} />
+				)}
+
 				<h1 className="text-4xl font-bold text-indigo-400 mb-2">Peer Share</h1>
 				<p className="mb-2">Buy and sell items within your college campus.</p>
 				<TagSearch selectedTag={selectedTag} setTag={setTag} clearTag={clearTag} />
-	{/* Fixed Sell Item Button in bottom right */}
-	<button
-		className="fixed bottom-8 right-8 px-6 py-3 rounded-full font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg transition-all z-50"
-		onClick={() => setShowModal(true)}
-	>
-		Sell Your Item
-	</button>
+
+				{/* Fixed Sell Item Button in bottom right */}
+				<button
+					className="fixed bottom-8 right-8 px-6 py-3 rounded-full font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg transition-all z-50"
+					onClick={() => setShowModal(true)}
+				>
+					Sell Your Item
+				</button>
+
 				{showModal && (
 					<AddProductModal
 						onClose={() => setShowModal(false)}
