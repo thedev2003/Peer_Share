@@ -27,6 +27,16 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		default: 'https://placehold.co/100x100/663399/FFFFFF?text=U',
 	},
+	itemsSold: [
+		{ type: mongoose.Schema.Types.ObjectId, 
+			ref: 'Product' 
+		}
+	],
+	itemsPurchased: [
+		{ type: mongoose.Schema.Types.ObjectId, 
+			ref: 'Product' 
+		}
+	]
 }, { timestamps: true });
 
 // This plugin is very useful for Passport's Google strategy

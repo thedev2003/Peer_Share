@@ -141,3 +141,38 @@ export const deleteProduct = async (req, res) => {
 		res.status(500).send('Server Error');
 	}
 };
+
+// Mark product as sold to a buyer
+export const sellToBuyer = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id).populate('seller');
+		if (!product) return res.status(404).json({ message: 'Product not found' });
+
+		// Only seller can mark as sold
+		if (product.seller._id.toString() !== req.user.id)
+			return res.status(403).json({ message: 'Not authorized' });
+
+		const { buyerId } = req.body;
+		// Must be in interestedBuyers
+		if (!product.interestedBuyers.map(id => id.toString()).includes(buyerId))
+			return res.status(400).json({ message: 'Buyer not in queue' });
+
+		// Mark as sold and set buyer
+		product.status = 'sold';
+		product.buyer = buyerId;
+		await product.save();
+
+		// Update seller's itemsSold and buyer's itemsPurchased
+		await User.findByIdAndUpdate(product.seller._id, {
+			$addToSet: { itemsSold: product._id }
+		});
+		await User.findByIdAndUpdate(buyerId, {
+			$addToSet: { itemsPurchased: product._id }
+		});
+
+		res.json({ message: 'Product sold', product });
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).json({ message: 'Server Error' });
+	}
+};

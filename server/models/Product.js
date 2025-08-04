@@ -38,6 +38,11 @@ const productSchema = new mongoose.Schema({
 		enum: ['Available', 'Sold'],
 		default: 'Available',
 	},
+	buyer: { // NEW FIELD: tracks the user who purchased the item
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+		default: null
+	},
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);
