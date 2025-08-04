@@ -6,12 +6,11 @@ import ChatBox from './ChatBox';
 const API_URL = import.meta.env.VITE_RENDER_URL;
 
 export default function ProductCard({ product, onProductRemoved, updateProductState, removeFromMarketplace }) {
-	const [showChat, setShowChat] = useState(null); // buyerId or null
+	const [showChat, setShowChat] = useState(null);
 	const [selling, setSelling] = useState(false);
 	const [sellError, setSellError] = useState(null);
 
 	const { user, token } = useSelector(state => state.auth);
-
 	const {
 		_id,
 		name,
@@ -19,8 +18,8 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 		category,
 		seller = {},
 		interestedBuyers = [],
-		status = 'available', // new field 'status'
-		buyer // new field 'buyer'
+		status = 'available',
+		buyer
 	} = product;
 
 	const isSeller = user && user._id === (seller._id || seller);
@@ -33,7 +32,6 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 			const res = await axios.post(`${API_URL}/api/products/${_id}/sell`, { buyerId }, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
-			// Remove from marketplace if sold
 			if (removeFromMarketplace) removeFromMarketplace(_id);
 			if (updateProductState) updateProductState(_id, res.data.product);
 		} catch (err) {
@@ -43,12 +41,14 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 		}
 	};
 
+	const statusLower = typeof status === 'string' ? status.toLowerCase() : status;
+
 	return (
 		<div className="w-full max-w-xs rounded-xl shadow-lg bg-gray-800 border border-gray-700 mx-auto my-4">
 			{/* ... other product details ... */}
 			<div className="p-3">
 				{/* Seller panel: Show buyers and sell button */}
-				{isSeller && interestedBuyers.length > 0 && status === 'available' && (
+				{isSeller && interestedBuyers.length > 0 && statusLower === 'available' && (
 					<div>
 						<span className="text-xs text-gray-400 mb-1">Interested Buyers:</span>
 						{interestedBuyers.map(buyerId => (
@@ -81,7 +81,7 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 					/>
 				)}
 				{/* If sold, show who bought */}
-				{status === 'sold' && buyer && (
+				{statusLower === 'sold' && buyer && (
 					<div className="mt-2 text-green-400 font-bold text-xs">
 						Sold to: {buyer.username || buyer}
 					</div>
