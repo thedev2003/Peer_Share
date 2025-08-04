@@ -2,10 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
-// You might use socket.io-client for real-time; here is REST + polling for simplicity
-// import io from "socket.io-client";
-// const socket = io(<YOUR_BACKEND_URL>);
-
 export default function ChatBox({ chatId, product, onClose }) {
 	const { user, token } = useSelector((state) => state.auth);
 	const [messages, setMessages] = useState([]);
@@ -14,7 +10,7 @@ export default function ChatBox({ chatId, product, onClose }) {
 	const [sending, setSending] = useState(false);
 	const messagesEndRef = useRef(null);
 
-	// Fetch chat history on open
+	// Fetch chat history on open and poll for updates
 	useEffect(() => {
 		const fetchMessages = async () => {
 			try {
@@ -22,7 +18,14 @@ export default function ChatBox({ chatId, product, onClose }) {
 				const res = await axios.get(`/api/chat/${chatId}`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
-				setMessages(res.data || []);
+				// Defensive: If res.data is not an array, fallback to []
+				if (Array.isArray(res.data)) {
+					setMessages(res.data);
+				} else if (Array.isArray(res.data.messages)) {
+					setMessages(res.data.messages);
+				} else {
+					setMessages([]);
+				}
 			} catch (e) {
 				setMessages([]);
 			} finally {
@@ -30,7 +33,6 @@ export default function ChatBox({ chatId, product, onClose }) {
 			}
 		};
 		fetchMessages();
-		// Optionally poll every 5s for new messages
 		const interval = setInterval(fetchMessages, 5000);
 		return () => clearInterval(interval);
 	}, [chatId, token]);
@@ -51,7 +53,12 @@ export default function ChatBox({ chatId, product, onClose }) {
 				{ message: input },
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
-			setMessages((prev) => [...prev, res.data]);
+			// Defensive: Accept either single message or array
+			if (Array.isArray(res.data)) {
+				setMessages((prev) => [...prev, ...res.data]);
+			} else if (res.data && res.data.message) {
+				setMessages((prev) => [...prev, res.data]);
+			}
 			setInput("");
 		} catch (err) {
 			alert("Failed to send message");
@@ -78,9 +85,9 @@ export default function ChatBox({ chatId, product, onClose }) {
 					style={{ minHeight: "200px" }}>
 					{loading
 						? <div className="text-center text-gray-400">Loading chat…</div>
-						: messages.length === 0
+						: Array.isArray(messages) && messages.length === 0
 							? <div className="text-center text-gray-500">No messages yet.</div>
-							: messages.map((msg, i) => (
+							: Array.isArray(messages) && messages.map((msg, i) => (
 								<div key={i} className={`flex mb-2 ${msg.sender === user._id ? "justify-end" : "justify-start"}`}>
 									<div className={`px-3 py-2 rounded-lg max-w-xs ${msg.sender === user._id ? "bg-indigo-600 text-white" : "bg-gray-700 text-gray-200"}`}>
 										<div className="text-xs opacity-80">{msg.senderName || (msg.sender === user._id ? "You" : "Seller")}</div>
