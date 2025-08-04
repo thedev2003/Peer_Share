@@ -57,14 +57,13 @@ export default function MarketplacePage() {
 	if (location.pathname === "/my-items" && user) {
 		pageProducts = products.filter(
 			p => {
-				// Support both populated and unpopulated seller field
 				const sellerId = p.seller?._id || p.seller;
 				return sellerId === user._id;
 			}
 		);
 	}
 
-	// Only show products that are not sold
+	// Only show products that are not sold (match schema: "Available" exact)
 	const availableProducts = pageProducts.filter(
 		p => typeof p.status === "string" && p.status === "Available"
 	);
