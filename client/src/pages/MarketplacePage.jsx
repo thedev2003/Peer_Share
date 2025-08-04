@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
-// Main marketplace page -- filters products for "my items for sale" if on /my-items
 export default function MarketplacePage() {
 	const { user } = useSelector(state => state.auth);
 	const location = useLocation();
@@ -20,7 +19,6 @@ export default function MarketplacePage() {
 	const [showModal, setShowModal] = useState(false);
 	const [showWelcome, setShowWelcome] = useState(false);
 
-	// Fetch products from backend
 	useEffect(() => {
 		const fetchProducts = async () => {
 			try {
@@ -39,7 +37,6 @@ export default function MarketplacePage() {
 		fetchProducts();
 	}, []);
 
-	// Show welcome notification only once per user session
 	useEffect(() => {
 		if (user?.username) {
 			const welcomedKey = `welcomed_${user.username}`;
@@ -52,20 +49,18 @@ export default function MarketplacePage() {
 
 	const clearTag = () => setTag(null);
 
-	// Routing logic for "my items for sale"
+	// "My items for sale" routing logic
 	let pageProducts = products;
 	if (location.pathname === "/my-items" && user) {
-		pageProducts = products.filter(
-			p => {
-				const sellerId = p.seller?._id || p.seller;
-				return sellerId === user._id;
-			}
-		);
+		pageProducts = products.filter(p => {
+			const sellerId = p.seller?._id || p.seller;
+			return sellerId === user._id;
+		});
 	}
 
-	// Only show products that are not sold (match schema: "Available" exact)
-	const availableProducts = pageProducts.filter(
-		p => typeof p.status === "string" && p.status === "Available"
+	// Only show products that are not sold (schema uses "Available")
+	const availableProducts = pageProducts.filter(p =>
+		typeof p.status === "string" && p.status === "Available"
 	);
 
 	// Tag filter, case-insensitive
@@ -112,7 +107,10 @@ export default function MarketplacePage() {
 				) : (
 					<div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6">
 						{filteredProducts.length === 0 ? (
-							<div className="text-gray-500">No products found.</div>
+							<div className="text-gray-500">
+								No products found.<br />
+								Try adding a new item or clearing filters.
+							</div>
 						) : (
 							filteredProducts.map(product => (
 								<ProductCard
