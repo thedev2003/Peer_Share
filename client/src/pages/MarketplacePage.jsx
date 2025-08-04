@@ -57,7 +57,6 @@ export default function MarketplacePage() {
 	if (location.pathname === "/my-items" && user) {
 		pageProducts = products.filter(
 			p => {
-				// Support both populated and unpopulated seller field
 				const sellerId = p.seller?._id || p.seller;
 				return sellerId === user._id;
 			}
