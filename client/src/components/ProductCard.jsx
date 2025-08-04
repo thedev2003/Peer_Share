@@ -3,18 +3,16 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { FaHeart } from 'react-icons/fa';
 import { FiMessageCircle } from 'react-icons/fi';
-import ChatBox from './ChatBox'; // Make sure this path is correct
+import ChatBox from './ChatBox';
 
 // Renders a single product card with details and actions
 export default function ProductCard({ product, onProductRemoved }) {
-	// Local UI state
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [joining, setJoining] = useState(false);
 	const [joined, setJoined] = useState(false);
 	const [error, setError] = useState(null);
 	const [showChat, setShowChat] = useState(false);
 
-	// Redux state for current user
 	const { user, token } = useSelector(state => state.auth);
 
 	// Safely destructure product fields with defaults
@@ -68,9 +66,9 @@ export default function ProductCard({ product, onProductRemoved }) {
 	};
 
 	return (
-		<div className="w-72 rounded-xl overflow-hidden group shadow-lg bg-gray-800 border border-gray-700 mx-2 my-4">
+		<div className="w-full max-w-xs sm:w-72 rounded-xl overflow-hidden group shadow-lg bg-gray-800 border border-gray-700 mx-auto sm:mx-2 my-4">
 			{/* Product image */}
-			<div className="relative h-40">
+			<div className="relative h-40 sm:h-40">
 				<img
 					src={imageUrl}
 					alt={name}
@@ -87,20 +85,16 @@ export default function ProductCard({ product, onProductRemoved }) {
 			</div>
 			{/* Product info */}
 			<div className="p-3">
-				{/* Product details in one line: name, price, tag */}
-				<div className="flex items-center justify-between gap-2 mb-1">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-1">
 					<span className="font-semibold text-white truncate">{name}</span>
 					<span className="text-indigo-400 font-bold text-sm">₹{price}</span>
 					<span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded">{category}</span>
 				</div>
-				{/* Seller name on second line */}
 				<div className="mb-2 text-xs text-gray-400">
 					Seller: {seller.username ? seller.username : typeof seller === 'string' ? seller : 'Unknown'}
 				</div>
-				{/* Error message if any */}
 				{error && <div className="text-red-500 text-xs mb-2">{error}</div>}
-				{/* Action buttons spaced horizontally on third row */}
-				<div className="flex gap-2 justify-between mt-2">
+				<div className="flex flex-col sm:flex-row gap-2 justify-between mt-2">
 					{isSeller && (
 						<button
 							className="flex-1 px-2 py-2 rounded bg-red-600 text-white text-sm font-semibold hover:bg-red-700"
@@ -127,7 +121,6 @@ export default function ProductCard({ product, onProductRemoved }) {
 						</button>
 					)}
 				</div>
-				{/* Chat modal */}
 				{showChat && (
 					<ChatBox
 						chatId={_id}

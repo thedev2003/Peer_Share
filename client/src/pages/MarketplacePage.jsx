@@ -72,9 +72,9 @@ export default function MarketplacePage() {
 	};
 
 	return (
-		<div className="flex min-h-screen bg-gray-900 text-white">
+		<div className="flex flex-col sm:flex-row min-h-screen bg-gray-900 text-white">
 			{user && <Sidebar />}
-			<div className="flex-1 p-6 relative">
+			<div className="flex-1 p-3 sm:p-6 relative">
 				{user?.username && showWelcome && (
 					<WelcomeNotification name={user.username} />
 				)}
@@ -98,7 +98,7 @@ export default function MarketplacePage() {
 				) : error ? (
 					<div className="text-center text-red-500 mb-4">{error}</div>
 				) : (
-					<div className="flex flex-wrap gap-6">
+					<div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-6">
 						{filteredProducts.length === 0 ? (
 							<div className="text-gray-500">No products found.</div>
 						) : (

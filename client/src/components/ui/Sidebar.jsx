@@ -4,8 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 export default function Sidebar() {
 	const location = useLocation();
 	return (
-		<nav className="bg-gray-900 text-white min-h-screen p-6 w-64">
-			<ul className="space-y-4">
+		<nav className="bg-gray-900 text-white w-full sm:w-64 p-3 sm:p-6 mb-3 sm:mb-0">
+			<ul className="flex flex-row sm:flex-col gap-3 sm:gap-4 justify-around sm:justify-start">
 				<li>
 					<Link
 						to="/my-items"
