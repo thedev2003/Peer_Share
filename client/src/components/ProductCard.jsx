@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import ChatBox from './ChatBox'; // Ensure this import is correct
+import ChatBox from './ChatBox'; // Make sure this exists
 
-const API_URL = import.meta.env.VITE_RENDER_URL;
+const API_URL = import.meta.env.VITE_RENDER_URL || window.location.origin;
 
-export default function ProductCard({ product, onProductRemoved, updateProductState, removeFromMarketplace }) {
-	const [showChat, setShowChat] = useState(null); // buyerId or null
+export default function ProductCard({
+	product,
+	onProductRemoved,
+	updateProductState,
+	removeFromMarketplace,
+}) {
+	const [showChat, setShowChat] = useState(null);
 	const [selling, setSelling] = useState(false);
 	const [sellError, setSellError] = useState(null);
+	const [joiningQueue, setJoiningQueue] = useState(false);
+	const [joinError, setJoinError] = useState(null);
 
-	const { user, token } = useSelector(state => state.auth);
+	const { user, token } = useSelector((state) => state.auth);
 
 	const {
 		_id,
@@ -21,26 +28,57 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 		seller = {},
 		interestedBuyers = [],
 		status = 'Available',
-		buyer
+		buyer,
 	} = product;
 
-	const isSeller = user && user._id === (seller._id || seller);
+	// Normalize status for logic
 	const statusLower = typeof status === 'string' ? status.toLowerCase() : status;
+
+	const userId = user?._id;
+	const sellerId = seller._id || seller;
+
+	const isSeller = userId === sellerId;
+	const isInQueue = interestedBuyers.map(String).includes(String(userId));
 
 	// Seller marks item as sold to buyer
 	const handleSellToBuyer = async (buyerId) => {
 		setSelling(true);
 		setSellError(null);
 		try {
-			const res = await axios.post(`${API_URL.replace(/\/$/, '')}/api/products/${_id}/sell`, { buyerId }, {
-				headers: { Authorization: `Bearer ${token}` }
-			});
+			const res = await axios.post(
+				`${API_URL.replace(/\/$/, '')}/api/products/${_id}/sell`,
+				{ buyerId },
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			);
 			if (removeFromMarketplace) removeFromMarketplace(_id);
 			if (updateProductState) updateProductState(_id, res.data.product);
 		} catch (err) {
 			setSellError(err.response?.data?.message || 'Failed to mark as sold');
 		} finally {
 			setSelling(false);
+		}
+	};
+
+	// Buyer joins queue
+	const handleJoinQueue = async () => {
+		setJoiningQueue(true);
+		setJoinError(null);
+		try {
+			await axios.post(
+				`${API_URL.replace(/\/$/, '')}/api/products/${_id}/join-queue`,
+				{},
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			);
+			// You should update interestedBuyers in parent state ideally
+			if (updateProductState) updateProductState(_id, { ...product, interestedBuyers: [...interestedBuyers, userId] });
+		} catch (err) {
+			setJoinError(err.response?.data?.message || 'Failed to join queue');
+		} finally {
+			setJoiningQueue(false);
 		}
 	};
 
@@ -54,31 +92,70 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 				<h2 className="text-xl font-semibold text-indigo-300 mb-1">{name}</h2>
 				<p className="text-gray-400 mb-1">Category: {category}</p>
 				<p className="text-gray-300 font-bold mb-2">₹{price}</p>
-				<p className="mb-2 text-xs text-gray-400">Seller: {seller.username || seller.email || 'Unknown'}</p>
-				{/* Seller panel: Show buyers and sell button */}
-				{isSeller && interestedBuyers.length > 0 && statusLower === 'available' && (
-					<div>
-						<span className="text-xs text-gray-400 mb-1">Interested Buyers:</span>
-						{interestedBuyers.map(buyerId => (
-							<div key={buyerId} className="flex gap-1 mb-2">
-								<button
-									className="flex-1 px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
-									onClick={() => setShowChat(buyerId)}
-								>
-									Chat with Buyer {buyerId}
-								</button>
-								<button
-									className="flex-1 px-2 py-1 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700"
-									onClick={() => handleSellToBuyer(buyerId)}
-									disabled={selling}
-								>
-									{selling ? 'Marking...' : `Sell to ${buyerId}`}
-								</button>
+				<p className="mb-2 text-xs text-gray-400">
+					Seller: {seller.username || seller.email || 'Unknown'}
+				</p>
+
+				{/* If item is available */}
+				{statusLower === 'available' && (
+					<>
+						{/* Seller panel: Show buyers and sell/chat buttons */}
+						{isSeller && interestedBuyers.length > 0 && (
+							<div>
+								<span className="text-xs text-gray-400 mb-1">Interested Buyers:</span>
+								{interestedBuyers.map((buyerId) => (
+									<div key={buyerId} className="flex gap-1 mb-2">
+										<button
+											className="flex-1 px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
+											onClick={() => setShowChat(buyerId)}
+										>
+											Chat with Buyer {buyerId}
+										</button>
+										<button
+											className="flex-1 px-2 py-1 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700"
+											onClick={() => handleSellToBuyer(buyerId)}
+											disabled={selling}
+										>
+											{selling ? 'Marking...' : `Sell to ${buyerId}`}
+										</button>
+									</div>
+								))}
+								{sellError && <div className="text-red-500 text-xs">{sellError}</div>}
 							</div>
-						))}
-						{sellError && <div className="text-red-500 text-xs">{sellError}</div>}
+						)}
+
+						{/* Buyer: Join queue or chat with seller */}
+						{!isSeller && (
+							<div className="flex flex-col gap-2 mt-2">
+								{!isInQueue ? (
+									<button
+										className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
+										onClick={handleJoinQueue}
+										disabled={joiningQueue}
+									>
+										{joiningQueue ? 'Joining...' : 'Enter Buyer Queue'}
+									</button>
+								) : (
+									<button
+										className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
+										onClick={() => setShowChat(sellerId)}
+									>
+										Chat with Seller
+									</button>
+								)}
+								{joinError && <div className="text-red-500 text-xs">{joinError}</div>}
+							</div>
+						)}
+					</>
+				)}
+
+				{/* If sold, show who bought */}
+				{statusLower === 'sold' && buyer && (
+					<div className="mt-2 text-green-400 font-bold text-xs">
+						Sold to: {buyer.username || buyer}
 					</div>
 				)}
+
 				{/* Chat Modal */}
 				{showChat && (
 					<ChatBox
@@ -87,12 +164,6 @@ export default function ProductCard({ product, onProductRemoved, updateProductSt
 						onClose={() => setShowChat(null)}
 						buyerId={showChat}
 					/>
-				)}
-				{/* If sold, show who bought */}
-				{statusLower === 'sold' && buyer && (
-					<div className="mt-2 text-green-400 font-bold text-xs">
-						Sold to: {buyer.username || buyer}
-					</div>
 				)}
 			</div>
 		</div>
