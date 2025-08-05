@@ -58,9 +58,13 @@ app.use('/api/users', noCache, userRoutes); // Add the user routes
 app.use('/api/chats', noCache, chatRoutes);
 
 // --- Initialize Socket.IO Handler ---
-initializeSocket(io);
+
+initializeSocket(new Server(http.createServer(app), {
+	cors: { 
+		origin: CLIENT_URL, 
+		methods: ['GET', 'POST'] 
+	}
+}));
 
 // --- Server Listener ---
-httpServer.listen(PORT, () => {
-	console.log(`Server is running on port: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

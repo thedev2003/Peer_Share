@@ -70,20 +70,19 @@ export const updateProduct = async (req, res) => {
 	}
 };
 
-// Join buyer queue
 export const joinBuyerQueue = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
 		if (!product) return res.status(404).json({ message: 'Product not found' });
-		if (product.interestedBuyers.map(id => id.toString()).includes(req.user.id)) {
+		if (product.interestedBuyers.map(id => String(id)).includes(String(req.user._id))) {
 			return res.status(400).json({ message: 'Already in queue' });
 		}
-		product.interestedBuyers.push(req.user.id);
+		product.interestedBuyers.push(req.user._id);
 		await product.save();
 		res.json({ product });
 	} catch (err) {
-		console.error(err.message);
-		res.status(500).send('Server Error');
+		console.error(err);
+		res.status(500).json({ message: 'Server Error' });
 	}
 };
 
@@ -92,12 +91,18 @@ export const leaveBuyerQueue = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
 		if (!product) return res.status(404).json({ message: 'Product not found' });
-		product.interestedBuyers = product.interestedBuyers.filter(id => id.toString() !== req.user.id);
+		const before = product.interestedBuyers.length;
+		product.interestedBuyers = product.interestedBuyers.filter(
+			id => String(id) !== String(req.user._id)
+		);
+		if (product.interestedBuyers.length === before) {
+			return res.status(400).json({ message: 'You are not in queue' });
+		}
 		await product.save();
 		res.json({ product });
 	} catch (err) {
-		console.error(err.message);
-		res.status(500).send('Server Error');
+		console.error(err);
+		res.status(500).json({ message: 'Server Error' });
 	}
 };
 
