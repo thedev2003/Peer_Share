@@ -1,178 +1,141 @@
 import Product from '../models/Product.js';
-import mongoose from 'mongoose';
-import { v2 as cloudinary } from 'cloudinary';
+import User from '../models/User.js';
 
-// --- Get All Products ---
-// Returns all products in "Available" status, sorted by creation date
+// Get all products
 export const getAllProducts = async (req, res) => {
 	try {
-		const products = await Product.find({ status: 'Available' })
-			.populate('seller', 'username profilePicture')
-			.sort({ createdAt: -1 });
+		const products = await Product.find().populate('seller', 'username email');
 		res.json(products);
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// --- Get a Single Product by ID ---
-// Returns product details for a given product id
+// Get a single product
 export const getProductById = async (req, res) => {
 	try {
-		const product = await Product.findById(req.params.id).populate('seller', 'username email profilePicture');
-		if (!product) {
-			return res.status(404).json({ message: 'Product not found' });
-		}
+		const product = await Product.findById(req.params.id).populate('seller', 'username email');
+		if (!product) return res.status(404).json({ message: 'Product not found' });
 		res.json(product);
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// --- Create a new Product ---
-// Adds a new product to the database and Cloudinary
+// Create a new product
 export const createProduct = async (req, res) => {
 	const { name, description, price, category } = req.body;
-
-	// Validate image upload
 	if (!req.file) {
 		return res.status(400).json({ message: 'Product image is required.' });
 	}
-
-	// Validate required fields
 	if (!name || !description || !price || !category) {
 		return res.status(400).json({ message: 'All fields are required.' });
 	}
-
 	try {
-		// Create new product object with image from Cloudinary
 		const newProduct = new Product({
 			name,
 			description,
 			price,
 			category,
-			imageUrl: req.file.path, // Cloudinary image URL
+			imageUrl: req.file.path,
 			seller: req.user.id,
 			status: 'Available'
 		});
 		const product = await newProduct.save();
 		res.status(201).json(product);
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).json({ message: 'Server Error' });
 	}
 };
 
-// --- Update a Product ---
-// Updates product fields if the user is the seller
+// Update product fields
 export const updateProduct = async (req, res) => {
 	const { name, description, price, category, status } = req.body;
 	try {
 		let product = await Product.findById(req.params.id);
-		if (!product) {
-			return res.status(404).json({ message: 'Product not found' });
-		}
-		// Only allow product owner to update
+		if (!product) return res.status(404).json({ message: 'Product not found' });
 		if (product.seller.toString() !== req.user.id) {
 			return res.status(401).json({ message: 'User not authorized' });
 		}
-		// Build updated fields
 		const productFields = { name, description, price, category, status };
 		Object.keys(productFields).forEach(key => productFields[key] === undefined && delete productFields[key]);
-		product = await Product.findByIdAndUpdate(
-			req.params.id,
-			{ $set: productFields },
-			{ new: true }
-		);
+		product = await Product.findByIdAndUpdate(req.params.id, { $set: productFields }, { new: true });
 		res.json(product);
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// --- Add user to interestedBuyers queue ---
-// Allows authenticated user to join buyer queue for a product
+// Join buyer queue
 export const joinBuyerQueue = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
-		if (!product) {
-			return res.status(404).json({ message: 'Product not found' });
-		}
-		// Prevent duplicate queue join
+		if (!product) return res.status(404).json({ message: 'Product not found' });
 		if (product.interestedBuyers.map(id => id.toString()).includes(req.user.id)) {
 			return res.status(400).json({ message: 'Already in queue' });
 		}
 		product.interestedBuyers.push(req.user.id);
 		await product.save();
-		res.json({ message: 'Added to buyer queue', product });
+		res.json({ product });
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// --- Delete a Product ---
-// Deletes product from MongoDB and Cloudinary if seller requests
-export const deleteProduct = async (req, res) => {
+// Leave buyer queue
+export const leaveBuyerQueue = async (req, res) => {
 	try {
 		const product = await Product.findById(req.params.id);
-		if (!product) {
-			return res.status(404).json({ message: 'Product not found' });
-		}
-		// Only allow product owner to delete
+		if (!product) return res.status(404).json({ message: 'Product not found' });
+		product.interestedBuyers = product.interestedBuyers.filter(id => id.toString() !== req.user.id);
+		await product.save();
+		res.json({ product });
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send('Server Error');
+	}
+};
+
+// Remove product from sale
+export const removeProduct = async (req, res) => {
+	try {
+		const product = await Product.findById(req.params.id);
+		if (!product) return res.status(404).json({ message: 'Product not found' });
 		if (product.seller.toString() !== req.user.id) {
 			return res.status(401).json({ message: 'User not authorized' });
 		}
-
-		// Extract public_id from Cloudinary URL and delete image
-		const imageUrl = product.imageUrl;
-		const publicIdMatch = imageUrl.match(/\/([^\/]+)\.[a-z]+$/); // get 'public_id' from Cloudinary URL
-		if (publicIdMatch) {
-			await cloudinary.uploader.destroy(`HostelMarketplace/${publicIdMatch[1]}`);
-		}
-
-		await product.remove();
-		res.json({ message: 'Product removed' });
+		await Product.deleteOne({ _id: req.params.id });
+		res.json({ message: 'Product removed from sale' });
 	} catch (err) {
-		console.error(err.message); // Log server error
+		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// Mark product as sold to a buyer
-export const sellToBuyer = async (req, res) => {
+// Mark item as sold to a buyer
+export const sellProductToBuyer = async (req, res) => {
 	try {
-		const product = await Product.findById(req.params.id).populate('seller');
-		if (!product) return res.status(404).json({ message: 'Product not found' });
-
-		// Only seller can mark as sold
-		if (product.seller._id.toString() !== req.user.id)
-			return res.status(403).json({ message: 'Not authorized' });
-
+		const product = await Product.findById(req.params.id);
 		const { buyerId } = req.body;
-		// Must be in interestedBuyers
-		if (!product.interestedBuyers.map(id => id.toString()).includes(buyerId))
-			return res.status(400).json({ message: 'Buyer not in queue' });
-
-		// Mark as sold and set buyer
-		product.status = 'sold';
+		if (!product) return res.status(404).json({ message: 'Product not found' });
+		if (product.seller.toString() !== req.user.id) {
+			return res.status(401).json({ message: 'User not authorized' });
+		}
+		if (!product.interestedBuyers.map(id => id.toString()).includes(buyerId)) {
+			return res.status(400).json({ message: 'Buyer must be in interested queue' });
+		}
+		product.status = 'Sold';
 		product.buyer = buyerId;
+		product.interestedBuyers = [];
 		await product.save();
-
-		// Update seller's itemsSold and buyer's itemsPurchased
-		await User.findByIdAndUpdate(product.seller._id, {
-			$addToSet: { itemsSold: product._id }
-		});
-		await User.findByIdAndUpdate(buyerId, {
-			$addToSet: { itemsPurchased: product._id }
-		});
-
-		res.json({ message: 'Product sold', product });
+		res.json({ product });
 	} catch (err) {
 		console.error(err.message);
-		res.status(500).json({ message: 'Server Error' });
+		res.status(500).send('Server Error');
 	}
 };

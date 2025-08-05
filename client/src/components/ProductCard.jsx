@@ -15,6 +15,7 @@ export default function ProductCard({
 	const [selling, setSelling] = useState(false);
 	const [removing, setRemoving] = useState(false);
 	const [leaveQueueLoading, setLeaveQueueLoading] = useState(false);
+	const [joinQueueLoading, setJoinQueueLoading] = useState(false);
 	const [actionError, setActionError] = useState(null);
 
 	const { user, token } = useSelector((state) => state.auth);
@@ -49,7 +50,6 @@ export default function ProductCard({
 					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
-			// Remove from marketplace for everyone
 			if (removeFromMarketplace) removeFromMarketplace(_id);
 			if (onProductRemoved) onProductRemoved(_id);
 			if (updateProductState) updateProductState(_id, res.data.product);
@@ -62,9 +62,10 @@ export default function ProductCard({
 
 	// Buyer joins queue
 	const handleJoinQueue = async () => {
+		setJoinQueueLoading(true);
 		setActionError(null);
 		try {
-			await axios.post(
+			const res = await axios.post(
 				`${API_URL.replace(/\/$/, '')}/api/products/${_id}/join-queue`,
 				{},
 				{
@@ -72,9 +73,11 @@ export default function ProductCard({
 				}
 			);
 			if (updateProductState)
-				updateProductState(_id, { ...product, interestedBuyers: [...interestedBuyers, userId] });
+				updateProductState(_id, res.data.product || { ...product, interestedBuyers: [...interestedBuyers, userId] });
 		} catch (err) {
 			setActionError(err.response?.data?.message || 'Failed to join queue');
+		} finally {
+			setJoinQueueLoading(false);
 		}
 	};
 
@@ -83,7 +86,7 @@ export default function ProductCard({
 		setLeaveQueueLoading(true);
 		setActionError(null);
 		try {
-			await axios.post(
+			const res = await axios.post(
 				`${API_URL.replace(/\/$/, '')}/api/products/${_id}/leave-queue`,
 				{},
 				{
@@ -91,13 +94,10 @@ export default function ProductCard({
 				}
 			);
 			if (updateProductState)
-				updateProductState(
-					_id,
-					{
-						...product,
-						interestedBuyers: interestedBuyers.filter((id) => String(id) !== String(userId)),
-					}
-				);
+				updateProductState(_id, res.data.product || {
+					...product,
+					interestedBuyers: interestedBuyers.filter((id) => String(id) !== String(userId)),
+				});
 		} catch (err) {
 			setActionError(err.response?.data?.message || 'Failed to leave queue');
 		} finally {
@@ -123,6 +123,11 @@ export default function ProductCard({
 		} finally {
 			setRemoving(false);
 		}
+	};
+
+	// Chat: Seller with buyers, Buyer with seller
+	const handleOpenChat = (chatTargetId) => {
+		setShowChat(chatTargetId);
 	};
 
 	return (
@@ -154,13 +159,7 @@ export default function ProductCard({
 								>
 									{removing ? 'Removing...' : 'Remove from Sale'}
 								</button>
-								<button
-									className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
-									onClick={() => setShowChat('seller')}
-								>
-									Open Chat (Interested Buyers)
-								</button>
-								{/* Interested buyers & sell buttons */}
+								{/* Seller chats with buyers */}
 								{interestedBuyers.length > 0 && (
 									<div className="mt-2">
 										<span className="text-xs text-gray-400 mb-1 block">Interested Buyers:</span>
@@ -168,7 +167,7 @@ export default function ProductCard({
 											<div key={buyerId} className="flex gap-1 mb-2">
 												<button
 													className="flex-1 px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
-													onClick={() => setShowChat(buyerId)}
+													onClick={() => handleOpenChat(buyerId)}
 												>
 													Chat with {buyerId}
 												</button>
@@ -190,8 +189,9 @@ export default function ProductCard({
 									<button
 										className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700"
 										onClick={handleJoinQueue}
+										disabled={joinQueueLoading}
 									>
-										Enter Buyer Queue
+										{joinQueueLoading ? 'Joining...' : 'Enter Buyer Queue'}
 									</button>
 								) : (
 									<>
@@ -204,7 +204,7 @@ export default function ProductCard({
 										</button>
 										<button
 											className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
-											onClick={() => setShowChat(sellerId)}
+											onClick={() => handleOpenChat(sellerId)}
 										>
 											Chat with Seller
 										</button>
@@ -231,7 +231,7 @@ export default function ProductCard({
 						chatId={_id}
 						product={product}
 						onClose={() => setShowChat(null)}
-						buyerId={showChat === 'seller' ? null : showChat}
+						participantId={showChat}
 						isSeller={isSeller}
 					/>
 				)}
