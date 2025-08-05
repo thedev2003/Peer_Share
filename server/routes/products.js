@@ -5,7 +5,6 @@ import {
 	getProductById,
 	createProduct,
 	updateProduct,
-	deleteProduct,
 	joinBuyerQueue,
 	leaveBuyerQueue,
 	sellProductToBuyer,
