@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import ChatBox from './ChatBox';
-
+const API_URL = import.meta.env.VITE_RENDER_URL;
 const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => {
     const [showChat, setShowChat] = useState(null);
     const [leaveQueueLoading, setLeaveQueueLoading] = useState(false);
