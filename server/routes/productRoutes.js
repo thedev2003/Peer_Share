@@ -10,13 +10,13 @@ import {
 	sellProductToBuyer
 } from '../controllers/productController.js';
 import { authRequired } from '../middleware/authMiddleware.js';
-import upload from '../middleware/uploadMiddleware.js';
+import { parser } from '../config/cloudinary.js';
 
 const router = express.Router();
 
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
-router.post('/', authRequired, upload.single('image'), createProduct);
+router.post('/', authRequired, parser.single('image'), createProduct);
 router.put('/:id', authRequired, updateProduct);
 
 router.post('/:id/join-queue', authRequired, joinBuyerQueue);
