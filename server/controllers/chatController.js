@@ -1,17 +1,20 @@
 import Chat from '../models/Chat.js';
 import Product from '../models/Product.js';
-import User from '../models/User.js';
 
 // Create or get chat between seller and buyer for product
 export const getOrCreateChat = async (req, res) => {
 	const { productId, participantId } = req.params;
 	const userId = req.user.id;
+	
 	try {
 		const product = await Product.findById(productId).populate('seller');
 		if (!product) return res.status(404).json({ message: 'Product not found' });
+		
 		// Only seller or interested buyer can access
 		const isSeller = product.seller._id.toString() === userId;
+		
 		const isBuyer = product.interestedBuyers.map(id => id.toString()).includes(userId) || (product.buyer && product.buyer.toString() === userId);
+		
 		if (!isSeller && !isBuyer) return res.status(403).json({ message: 'Not authorized for chat' });
 
 		// Find or create chat

@@ -10,7 +10,7 @@ import { Server } from 'socket.io';
 import productRoutes from './routes/products.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
-import chatRoutes from './routes/chats.js';
+import chatRoutes from './routes/chatRoutes.js';
 import noCache from './middleware/cacheControl.js'; // Import the cache control middleware
 
 // Import configurations
@@ -41,7 +41,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use(cors({
 	// origin: 'http://localhost:5173',
 	origin: CLIENT_URL,
-	credentials: true
+	credentials: true,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,13 +58,7 @@ app.use('/api/users', noCache, userRoutes); // Add the user routes
 app.use('/api/chats', noCache, chatRoutes);
 
 // --- Initialize Socket.IO Handler ---
-
-initializeSocket(new Server(http.createServer(app), {
-	cors: { 
-		origin: CLIENT_URL, 
-		methods: ['GET', 'POST'] 
-	}
-}));
+initializeSocket(io);
 
 // --- Server Listener ---
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

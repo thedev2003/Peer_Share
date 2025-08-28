@@ -1,5 +1,4 @@
 import Chat from '../models/Chat.js';
-import User from '../models/User.js';
 
 export default function initializeSocket(io) {
 	io.on('connection', (socket) => {

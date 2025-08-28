@@ -1,41 +1,57 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
-export default function ChatBox({ chatId, product, onClose }) {
+
+export default function ChatBox({ productId, participantId, product, onClose }) {
 	const { user, token } = useSelector((state) => state.auth);
+	const [chatId, setChatId] = useState(null);
 	const [messages, setMessages] = useState([]);
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(true);
 	const [sending, setSending] = useState(false);
 	const messagesEndRef = useRef(null);
 
-	// Fetch chat history on open and poll for updates
+	// On mount, get or create the chat and fetch messages
 	useEffect(() => {
-		const fetchMessages = async () => {
+		let interval;
+		const getOrCreateChat = async () => {
 			try {
 				setLoading(true);
-				const res = await axios.get(`/api/chat/${chatId}`, {
+				const res = await axios.get(`/api/chats/product/${productId}/${participantId}`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
-				// Defensive: If res.data is not an array, fallback to []
-				if (Array.isArray(res.data)) {
-					setMessages(res.data);
-				} else if (Array.isArray(res.data.messages)) {
+				setChatId(res.data._id);
+				// Defensive: If res.data.messages is not an array, fallback to []
+				if (Array.isArray(res.data.messages)) {
 					setMessages(res.data.messages);
 				} else {
 					setMessages([]);
 				}
+				// Start polling for new messages
+				interval = setInterval(async () => {
+					try {
+						const msgRes = await axios.get(`/api/chats/${res.data._id}/messages`, {
+							headers: { Authorization: `Bearer ${token}` }
+						});
+						if (Array.isArray(msgRes.data)) {
+							setMessages(msgRes.data);
+						} else {
+							setMessages([]);
+						}
+					} catch {
+						setMessages([]);
+					}
+				}, 3000);
 			} catch (e) {
 				setMessages([]);
 			} finally {
 				setLoading(false);
 			}
 		};
-		fetchMessages();
-		const interval = setInterval(fetchMessages, 5000);
-		return () => clearInterval(interval);
-	}, [chatId, token]);
+		getOrCreateChat();
+		return () => interval && clearInterval(interval);
+	}, [productId, participantId, token]);
 
 	// Scroll to bottom on new message
 	useEffect(() => {
@@ -45,19 +61,20 @@ export default function ChatBox({ chatId, product, onClose }) {
 	// Send message
 	const handleSend = async (e) => {
 		e.preventDefault();
-		if (!input.trim()) return;
+		if (!input.trim() || !chatId) return;
 		setSending(true);
 		try {
 			const res = await axios.post(
-				`/api/chat/${chatId}`,
-				{ message: input },
+				`/api/chats/${chatId}/messages`,
+				{ content: input },
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
-			// Defensive: Accept either single message or array
-			if (Array.isArray(res.data)) {
-				setMessages((prev) => [...prev, ...res.data]);
-			} else if (res.data && res.data.message) {
-				setMessages((prev) => [...prev, res.data]);
+			// After sending, fetch messages again
+			const msgRes = await axios.get(`/api/chats/${chatId}/messages`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			if (Array.isArray(msgRes.data)) {
+				setMessages(msgRes.data);
 			}
 			setInput("");
 		} catch (err) {
