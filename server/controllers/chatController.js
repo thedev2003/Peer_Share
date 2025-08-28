@@ -56,3 +56,16 @@ export const sendMessage = async (req, res) => {
 		res.status(500).send('Server Error');
 	}
 };
+
+// Get all messages for a specific chat
+export const getMessagesForChat = async (req, res) => {
+    const { chatId } = req.params;
+    try {
+        const chat = await Chat.findById(chatId).populate('messages.sender', 'username profilePicture');
+        if (!chat) return res.status(404).json({ message: 'Chat not found' });
+        res.json(chat.messages || []);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
