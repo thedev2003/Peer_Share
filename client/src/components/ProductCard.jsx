@@ -15,6 +15,7 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 	const [actionError, setActionError] = useState(null);
 	const [showDescription, setShowDescription] = useState(false);
 	const [descAnim, setDescAnim] = useState(''); // '' | 'fadeIn' | 'fadeOut'
+	const [showBuyersDropdown, setShowBuyersDropdown] = useState(false);
 
 	// Get user and token from Redux store
 	const { user, token } = useSelector((state) => state.auth);
@@ -117,7 +118,12 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 
 
 	// Handler: Open chat modal for seller or buyer
-	const handleOpenChat = (chatTargetId) => setShowChat(chatTargetId);
+	const handleOpenChat = (chatTargetId) => {
+		setShowChat(chatTargetId);
+		setShowBuyersDropdown(false);
+	};
+	// Handler: Toggle buyers dropdown
+	const handleToggleBuyersDropdown = () => setShowBuyersDropdown((prev) => !prev);
 
 	// Handler: Toggle description overlay
 	const handleToggleDescription = () => {
@@ -196,9 +202,11 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 				`}</style>
 			</div>
 			<div className="flex flex-col p-4">
-				{/* Product title and price */}
-				<h2 className="text-lg font-semibold text-white">{name}</h2>
-				<p className="text-lg font-bold text-indigo-400">₹{price}</p>
+				{/* Product title and price aligned */}
+				<div className="flex items-center justify-between">
+					<h2 className="text-lg font-semibold text-white">{name}</h2>
+					<p className="text-lg font-bold text-indigo-400">₹{price}</p>
+				</div>
 				{/* Product status and action buttons */}
 				{statusLower === "available" && (
 					<div className="flex flex-col gap-2 mt-2">
@@ -210,24 +218,31 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 								>
 									Remove from Sale
 								</button>
-								{/* Chat with Buyer dropdown/list - always visible */}
-								<div className="mt-2">
-									<div className="text-xs text-gray-300 mb-1">Chat with Buyers:</div>
-									<div className="flex flex-col gap-1">
-										{interestedBuyers.length > 0 ? (
-											interestedBuyers.map((buyerId, idx) => (
-												<button
-													key={buyerId}
-													className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
-													onClick={() => handleOpenChat(buyerId)}
-												>
-													Chat with Buyer #{idx + 1}
-												</button>
-											))
-										) : (
-											<div className="px-2 py-1 rounded bg-gray-700 text-white text-xs font-semibold text-center">No buyers so far</div>
-										)}
-									</div>
+								{/* Chat with Buyers button and dropdown */}
+								<div className="mt-2 relative">
+									<button
+										className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800 w-full text-center"
+										onClick={handleToggleBuyersDropdown}
+									>
+										Chat with Buyers
+									</button>
+									{showBuyersDropdown && (
+										<div className="absolute left-0 right-0 mt-2 bg-gray-900 rounded shadow-lg z-30">
+											{interestedBuyers.length > 0 ? (
+												interestedBuyers.map((buyerId, idx) => (
+													<button
+														key={buyerId}
+														className="w-full px-2 py-2 border-b border-gray-800 text-left text-xs text-white hover:bg-violet-800"
+														onClick={() => handleOpenChat(buyerId)}
+													>
+														Chat with Buyer #{idx + 1}
+													</button>
+												))
+											) : (
+												<div className="px-2 py-2 text-center text-xs text-gray-300">No buyers so far</div>
+											)}
+										</div>
+									)}
 								</div>
 							</>
 						) : (
