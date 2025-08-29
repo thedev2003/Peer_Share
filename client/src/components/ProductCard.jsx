@@ -229,15 +229,23 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 									{showBuyersDropdown && (
 										<div className="absolute left-0 right-0 mt-2 bg-gray-900 rounded shadow-lg z-30">
 											{interestedBuyers.length > 0 ? (
-												interestedBuyers.map((buyerId, idx) => (
-													<button
-														key={buyerId}
-														className="w-full px-2 py-2 border-b border-gray-800 text-left text-xs text-white hover:bg-violet-800"
-														onClick={() => handleOpenChat(buyerId)}
-													>
-														Chat with Buyer #{idx + 1}
-													</button>
-												))
+												interestedBuyers.map((buyer, idx) => {
+													// buyer can be an object or just an id
+													const buyerId = buyer._id || buyer;
+													let scholarNo = buyerId;
+													if (buyer.email) {
+														scholarNo = buyer.email.split('@')[0];
+													}
+													return (
+														<button
+															key={buyerId}
+															className="w-full px-2 py-2 border-b border-gray-800 text-left text-xs text-white hover:bg-violet-800"
+															onClick={() => handleOpenChat(buyerId)}
+														>
+															Chat with Buyer #{idx + 1} <span className="ml-2 text-gray-400">Scholar No.: {scholarNo}</span>
+														</button>
+													);
+												})
 											) : (
 												<div className="px-2 py-2 text-center text-xs text-gray-300">No buyers so far</div>
 											)}
