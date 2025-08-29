@@ -14,6 +14,7 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 	const [joinQueueLoading, setJoinQueueLoading] = useState(false);
 	const [actionError, setActionError] = useState(null);
 	const [showDescription, setShowDescription] = useState(false);
+	const [descAnim, setDescAnim] = useState(''); // '' | 'fadeIn' | 'fadeOut'
 
 	// Get user and token from Redux store
 	const { user, token } = useSelector((state) => state.auth);
@@ -119,7 +120,18 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 	const handleOpenChat = (chatTargetId) => setShowChat(chatTargetId);
 
 	// Handler: Toggle description overlay
-	const handleToggleDescription = () => setShowDescription((prev) => !prev);
+	const handleToggleDescription = () => {
+		setDescAnim('fadeIn');
+		setShowDescription(true);
+	};
+	// Handler: Close description overlay with fadeOut
+	const handleCloseDescription = () => {
+		setDescAnim('fadeOut');
+		setTimeout(() => {
+			setShowDescription(false);
+			setDescAnim('');
+		}, 300); // match animation duration
+	};
 
 
 	// Main render for product card
@@ -133,24 +145,55 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 					className="absolute inset-0 h-full w-full object-cover"
 				/>
 				{/* Dropdown icon button */}
-				<button
-					className="absolute top-2 right-2 bg-gray-900 bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 z-10"
-					onClick={handleToggleDescription}
-					aria-label="Show Description"
-				>
-					{/* Simple chevron-down icon (SVG) */}
-					<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
-						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-					</svg>
-				</button>
-				{/* Description overlay */}
+				{!showDescription && (
+					<button
+						className="absolute top-2 right-2 bg-gray-900 bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 z-10"
+						onClick={handleToggleDescription}
+						aria-label="Show Description"
+					>
+						{/* Simple chevron-down icon (SVG) */}
+						<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+						</svg>
+					</button>
+				)}
+				{/* Description overlay with fade animation and info */}
 				{showDescription && (
-					<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm z-20">
+					<div className={`absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm z-20 ${descAnim === 'fadeIn' ? 'animate-fadeIn' : descAnim === 'fadeOut' ? 'animate-fadeOut' : ''}`}>
+						<button
+							className="absolute top-2 right-2 bg-gray-800 bg-opacity-80 rounded-full p-1 hover:bg-red-600 z-30"
+							onClick={handleCloseDescription}
+							aria-label="Close Description"
+						>
+							{/* Close (X) icon */}
+							<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
 						<div className="text-white text-sm p-4 text-center">
-							{description || "No description provided."}
+							<div className="mb-2 font-semibold">{description || "No description provided."}</div>
+							<div className="text-xs text-gray-300">Category: {product.category || "N/A"}</div>
+							<div className="text-xs text-gray-300">Seller: {seller?.username || sellerId || "N/A"}</div>
 						</div>
 					</div>
 				)}
+				{/* Fade animation keyframes */}
+				<style>{`
+					@keyframes fadeIn {
+						from { opacity: 0; }
+						to { opacity: 1; }
+					}
+					@keyframes fadeOut {
+						from { opacity: 1; }
+						to { opacity: 0; }
+					}
+					.animate-fadeIn {
+						animation: fadeIn 0.3s ease;
+					}
+					.animate-fadeOut {
+						animation: fadeOut 0.3s ease;
+					}
+				`}</style>
 			</div>
 			<div className="flex flex-col p-4">
 				{/* Product title and price */}
@@ -167,12 +210,12 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 								>
 									Remove from Sale
 								</button>
-								{/* Chat with Buyer dropdown/list */}
-								{interestedBuyers.length > 0 && (
-									<div className="mt-2">
-										<div className="text-xs text-gray-300 mb-1">Chat with Buyers:</div>
-										<div className="flex flex-col gap-1">
-											{interestedBuyers.map((buyerId, idx) => (
+								{/* Chat with Buyer dropdown/list - always visible */}
+								<div className="mt-2">
+									<div className="text-xs text-gray-300 mb-1">Chat with Buyers:</div>
+									<div className="flex flex-col gap-1">
+										{interestedBuyers.length > 0 ? (
+											interestedBuyers.map((buyerId, idx) => (
 												<button
 													key={buyerId}
 													className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
@@ -180,10 +223,12 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 												>
 													Chat with Buyer #{idx + 1}
 												</button>
-											))}
-										</div>
+											))
+										) : (
+											<div className="px-2 py-1 rounded bg-gray-700 text-white text-xs font-semibold text-center">No buyers so far</div>
+										)}
 									</div>
-								)}
+								</div>
 							</>
 						) : (
 							<>
