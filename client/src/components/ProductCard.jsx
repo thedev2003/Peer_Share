@@ -6,12 +6,14 @@ import ChatBox from "./ChatBox";
 // Set API base URL from Vite environment variable
 const API_URL = import.meta.env.VITE_RENDER_URL;
 
+
 const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => {
 	// State hooks for UI toggles and status
 	const [showChat, setShowChat] = useState(null);
 	const [leaveQueueLoading, setLeaveQueueLoading] = useState(false);
 	const [joinQueueLoading, setJoinQueueLoading] = useState(false);
 	const [actionError, setActionError] = useState(null);
+	const [showDescription, setShowDescription] = useState(false);
 
 	// Get user and token from Redux store
 	const { user, token } = useSelector((state) => state.auth);
@@ -112,12 +114,17 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 		}
 	};
 
+
 	// Handler: Open chat modal for seller or buyer
 	const handleOpenChat = (chatTargetId) => setShowChat(chatTargetId);
 
+	// Handler: Toggle description overlay
+	const handleToggleDescription = () => setShowDescription((prev) => !prev);
+
+
 	// Main render for product card
 	return (
-		<div className="w-full max-w-[320px] min-w-[260px] rounded-xl shadow-lg bg-gray-800 border border-gray-700 mx-auto my-4 flex flex-col">
+		<div className="w-full max-w-[280px] min-w-[250px] rounded-xl shadow-lg bg-gray-800 border border-gray-700 mx-auto my-4 flex flex-col">
 			{/* Product image section */}
 			<div className="relative block w-full h-[200px] overflow-hidden rounded-t-xl">
 				<img
@@ -125,6 +132,25 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 					alt={name}
 					className="absolute inset-0 h-full w-full object-cover"
 				/>
+				{/* Dropdown icon button */}
+				<button
+					className="absolute top-2 right-2 bg-gray-900 bg-opacity-70 rounded-full p-1 hover:bg-opacity-90 z-10"
+					onClick={handleToggleDescription}
+					aria-label="Show Description"
+				>
+					{/* Simple chevron-down icon (SVG) */}
+					<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-white">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+					</svg>
+				</button>
+				{/* Description overlay */}
+				{showDescription && (
+					<div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm z-20">
+						<div className="text-white text-sm p-4 text-center">
+							{description || "No description provided."}
+						</div>
+					</div>
+				)}
 			</div>
 			<div className="flex flex-col p-4">
 				{/* Product title and price */}
@@ -134,12 +160,31 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 				{statusLower === "available" && (
 					<div className="flex flex-col gap-2 mt-2">
 						{isSeller ? (
-							<button
-								className="px-2 py-1 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
-								onClick={handleRemoveFromSale}
-							>
-								Remove from Sale
-							</button>
+							<>
+								<button
+									className="px-2 py-1 rounded bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+									onClick={handleRemoveFromSale}
+								>
+									Remove from Sale
+								</button>
+								{/* Chat with Buyer dropdown/list */}
+								{interestedBuyers.length > 0 && (
+									<div className="mt-2">
+										<div className="text-xs text-gray-300 mb-1">Chat with Buyers:</div>
+										<div className="flex flex-col gap-1">
+											{interestedBuyers.map((buyerId, idx) => (
+												<button
+													key={buyerId}
+													className="px-2 py-1 rounded bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800"
+													onClick={() => handleOpenChat(buyerId)}
+												>
+													Chat with Buyer #{idx + 1}
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+							</>
 						) : (
 							<>
 								{!isInQueue ? (
