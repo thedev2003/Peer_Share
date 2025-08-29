@@ -26,9 +26,9 @@ export default function Navbar() {
 			<div className="flex items-center gap-4">
 				{user && (
 					<>
-						<img src={`${user.photoUrl}.png`} alt="user" className="w-8 h-8 rounded-full" />
+						<img src={`${user.profilePicture}`} alt="user" className="w-8 h-8 rounded-full" />
 						<span>{user.email}</span>
-						<button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded">Logout</button>
+						<button onClick={handleLogout} className="bg-red-400 hover:bg-red-600 px-2 py-1 rounded text-sm">Logout</button>
 					</>
 				)}
 			</div>
