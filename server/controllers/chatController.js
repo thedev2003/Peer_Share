@@ -39,33 +39,45 @@ export const getOrCreateChat = async (req, res) => {
 
 // Send a chat message
 export const sendMessage = async (req, res) => {
-	const { productId, participantId } = req.params;
-	const { message } = req.body;
-	const userId = req.user.id;
+    const { chatId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+    try {
+        let chat = await Chat.findById(chatId);
+        if (!chat) return res.status(404).json({ message: 'Chat not found' });
+        chat.messages.push({ sender: userId, content, timestamp: new Date() });
+        await chat.save();
+        res.json(chat);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+// Get all messages for a specific chat
+export const getMessagesForChat = async (req, res) => {
+	const { chatId } = req.params;
 	try {
-		let chat = await Chat.findOne({
-			participants: { $all: [userId, participantId], $size: 2 },
-			product: productId
-		});
+		const chat = await Chat.findById(chatId).populate('messages.sender', 'username profilePicture');
 		if (!chat) return res.status(404).json({ message: 'Chat not found' });
-		chat.messages.push({ sender: userId, text: message, timestamp: new Date() });
-		await chat.save();
-		res.json(chat);
+		res.json(chat.messages || []);
 	} catch (err) {
 		console.error(err.message);
 		res.status(500).send('Server Error');
 	}
 };
 
-// Get all messages for a specific chat
-export const getMessagesForChat = async (req, res) => {
-    const { chatId } = req.params;
-    try {
-        const chat = await Chat.findById(chatId).populate('messages.sender', 'username profilePicture');
-        if (!chat) return res.status(404).json({ message: 'Chat not found' });
-        res.json(chat.messages || []);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
+// Get all chats for the currently logged-in user
+export const getUserChats = async (req, res) => {
+	const userId = req.user.id;
+	try {
+		// Find all chats where the user is a participant
+		const chats = await Chat.find({
+			participants: userId
+		}).populate('participants', 'username profilePicture').populate('product');
+		res.json(chats);
+	} catch (err) {
+		console.error(err.message);
+		res.status(500).send('Server Error');
+	}
 };
