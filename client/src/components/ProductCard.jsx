@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import ChatBox from "./ChatBox";
@@ -180,6 +180,9 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 							<div className="mb-2 font-semibold">{description || "No description provided."}</div>
 							<div className="text-xs text-gray-300">Category: {product.category || "N/A"}</div>
 							<div className="text-xs text-gray-300">Seller: {seller?.username || sellerId || "N/A"}</div>
+							<div className="text-xs text-gray-300">
+								Scholar No.: {seller?.email ? seller.email.split('@')[0] : "N/A"}
+							</div>
 						</div>
 					</div>
 				)}

@@ -1,5 +1,6 @@
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import { v2 as cloudinary } from '../config/cloudinary.js';
 
 // Get all products
 export const getAllProducts = async (req, res) => {
@@ -113,6 +114,21 @@ export const removeProduct = async (req, res) => {
 		if (!product) return res.status(404).json({ message: 'Product not found' });
 		if (product.seller.toString() !== req.user.id) {
 			return res.status(401).json({ message: 'User not authorized' });
+		}
+		// Remove image from Cloudinary
+		if (product.imageUrl) {
+			// Extract public_id from imageUrl
+			// imageUrl format: https://res.cloudinary.com/<cloud_name>/image/upload/v<version>/<public_id>.<ext>
+			const parts = product.imageUrl.split('/');
+			const lastPart = parts[parts.length - 1];
+			const publicIdWithExt = lastPart.split('.')[0];
+			const folder = 'HostelMarketplace';
+			const publicId = `${folder}/${publicIdWithExt}`;
+			try {
+				await cloudinary.uploader.destroy(publicId);
+			} catch (cloudErr) {
+				console.error('Cloudinary image removal error:', cloudErr);
+			}
 		}
 		await Product.deleteOne({ _id: req.params.id });
 		res.json({ message: 'Product removed from sale' });
