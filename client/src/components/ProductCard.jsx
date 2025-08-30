@@ -179,9 +179,11 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 						<div className="text-white text-sm p-4 text-center">
 							<div className="mb-2 font-semibold">{description || "No description provided."}</div>
 							<div className="text-xs text-gray-300">Category: {product.category || "N/A"}</div>
-							<div className="text-xs text-gray-300">Seller: {seller?.username || sellerId || "N/A"}</div>
 							<div className="text-xs text-gray-300">
-								Scholar No.: {seller?.email ? seller.email.split('@')[0] : "N/A"}
+								Seller: {typeof seller === 'object' && seller.username ? seller.username : 'N/A'}
+							</div>
+							<div className="text-xs text-gray-300">
+								Scholar No.: {typeof seller === 'object' && seller.email ? seller.email.split('@')[0] : 'N/A'}
 							</div>
 						</div>
 					</div>
