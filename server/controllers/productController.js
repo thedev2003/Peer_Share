@@ -44,7 +44,9 @@ export const createProduct = async (req, res) => {
 			seller: req.user.id,
 			status: 'Available'
 		});
-		const product = await newProduct.save();
+		await newProduct.save();
+		// Re-fetch with populated seller info
+		const product = await Product.findById(newProduct._id).populate('seller', 'username email');
 		res.status(201).json(product);
 	} catch (err) {
 		console.error(err.message);
@@ -63,7 +65,9 @@ export const updateProduct = async (req, res) => {
 		}
 		const productFields = { name, description, price, category, status };
 		Object.keys(productFields).forEach(key => productFields[key] === undefined && delete productFields[key]);
-		product = await Product.findByIdAndUpdate(req.params.id, { $set: productFields }, { new: true });
+		await Product.findByIdAndUpdate(req.params.id, { $set: productFields }, { new: true });
+		// Re-fetch with populated seller info
+		product = await Product.findById(req.params.id).populate('seller', 'username email');
 		res.json(product);
 	} catch (err) {
 		console.error(err.message);
