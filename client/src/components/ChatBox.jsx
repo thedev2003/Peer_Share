@@ -1,7 +1,14 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { io } from "socket.io-client";
 
+// Initialize socket outside component to avoid multiple connections
+const socket = io(import.meta.env.VITE_RENDER_URL || window.location.origin, {
+	autoConnect: false,
+	transports: ["websocket"]
+});
 
 export default function ChatBox({ productId, participantId, product, onClose }) {
 	const { user, token } = useSelector((state) => state.auth);
@@ -15,6 +22,7 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 	// On mount, get or create the chat and fetch messages
 	useEffect(() => {
 		let interval;
+		let joined = false;
 		const getOrCreateChat = async () => {
 			try {
 				setLoading(true);
@@ -28,7 +36,25 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 				} else {
 					setMessages([]);
 				}
-				// Start polling for new messages
+				// --- SOCKET.IO JOIN ---
+				if (!socket.connected) socket.connect();
+				socket.emit("joinRoom", res.data._id);
+				joined = true;
+
+
+				// Listen for new messages
+				socket.on("newMessage", (msg) => {
+					setMessages((prev) => [...prev, msg]);
+				});
+
+
+				// Listen for previous messages (optional, for sync)
+				socket.on("previousMessages", (msgs) => {
+					if (Array.isArray(msgs)) setMessages(msgs);
+				});
+
+				
+				// Fallback polling (optional, can be removed if sockets are reliable)
 				interval = setInterval(async () => {
 					try {
 						const msgRes = await axios.get(`/api/chats/${res.data._id}/messages`, {
@@ -36,21 +62,26 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 						});
 						if (Array.isArray(msgRes.data)) {
 							setMessages(msgRes.data);
-						} else {
-							setMessages([]);
 						}
 					} catch {
-						setMessages([]);
+						// ignore
 					}
-				}, 3000);
+				}, 10000); // poll less frequently if sockets are used
 			} catch (e) {
 				setMessages([]);
 			} finally {
 				setLoading(false);
 			}
 		};
+
+
 		getOrCreateChat();
-		return () => interval && clearInterval(interval);
+		return () => {
+			if (interval) clearInterval(interval);
+			if (joined && chatId) socket.emit("leaveRoom", chatId);
+			socket.off("newMessage");
+			socket.off("previousMessages");
+		};
 	}, [productId, participantId, token]);
 
 	// Scroll to bottom on new message
@@ -64,18 +95,12 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 		if (!input.trim() || !chatId) return;
 		setSending(true);
 		try {
-			const res = await axios.post(
-				`/api/chats/${chatId}/messages`,
-				{ content: input },
-				{ headers: { Authorization: `Bearer ${token}` } }
-			);
-			// After sending, fetch messages again
-			const msgRes = await axios.get(`/api/chats/${chatId}/messages`, {
-				headers: { Authorization: `Bearer ${token}` }
+			// Emit to socket
+			socket.emit("sendMessage", {
+				chatId,
+				senderId: user._id,
+				content: input
 			});
-			if (Array.isArray(msgRes.data)) {
-				setMessages(msgRes.data);
-			}
 			setInput("");
 		} catch (err) {
 			alert("Failed to send message");
