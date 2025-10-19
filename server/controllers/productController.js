@@ -1,6 +1,6 @@
 import Product from '../models/Product.js';
 import User from '../models/User.js';
-import { v2 as cloudinary } from '../config/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Get all products
 export const getAllProducts = async (req, res) => {
