@@ -10,7 +10,7 @@ let socketURL = import.meta.env.VITE_RENDER_URL || window.location.origin;
 socketURL = socketURL.replace("https://", "wss://");
 const socket = io(socketURL, {
 	autoConnect: false,
-	transports: ["polling"]
+	transports: ["websocket"]
 });
 
 export default function ChatBox({ productId, participantId, product, onClose }) {
@@ -32,17 +32,21 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 				const res = await axios.get(`/api/chats/product/${productId}/${participantId}`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
-				setChatId(res.data._id);
-				// Defensive: If res.data.messages is not an array, fallback to []
-				if (Array.isArray(res.data.messages)) {
-					setMessages(res.data.messages);
+				if (res.data && res.data._id) {
+					setChatId(res.data._id);
+					// Defensive: If res.data.messages is not an array, fallback to []
+					if (Array.isArray(res.data.messages)) {
+						setMessages(res.data.messages);
+					} else {
+						setMessages([]);
+					}
+					// --- SOCKET.IO JOIN ---
+					if (!socket.connected) socket.connect();
+					socket.emit("joinRoom", res.data._id);
+					joined = true;
 				} else {
 					setMessages([]);
 				}
-				// --- SOCKET.IO JOIN ---
-				if (!socket.connected) socket.connect();
-				socket.emit("joinRoom", res.data._id);
-				joined = true;
 
 
 				// Listen for new messages
