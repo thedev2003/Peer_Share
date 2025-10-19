@@ -10,7 +10,7 @@ let socketURL = import.meta.env.VITE_RENDER_URL || window.location.origin;
 socketURL = socketURL.replace("https://", "wss://");
 const socket = io(socketURL, {
 	autoConnect: false,
-	transports: ["websocket"]
+	transports: ["websocket", "polling"]
 });
 
 export default function ChatBox({ productId, participantId, product, onClose }) {
