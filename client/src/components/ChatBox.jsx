@@ -53,7 +53,7 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 					if (Array.isArray(msgs)) setMessages(msgs);
 				});
 
-				
+
 				// Fallback polling (optional, can be removed if sockets are reliable)
 				interval = setInterval(async () => {
 					try {
@@ -130,10 +130,12 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 						: Array.isArray(messages) && messages.length === 0
 							? <div className="text-center text-gray-500">No messages yet.</div>
 							: Array.isArray(messages) && messages.map((msg, i) => (
-								<div key={i} className={`flex mb-2 ${msg.sender === user._id ? "justify-end" : "justify-start"}`}>
-									<div className={`px-3 py-2 rounded-lg max-w-xs ${msg.sender === user._id ? "bg-indigo-600 text-white" : "bg-gray-700 text-gray-200"}`}>
-										<div className="text-xs opacity-80">{msg.senderName || (msg.sender === user._id ? "You" : "Seller")}</div>
-										<div className="break-words">{msg.message}</div>
+								<div key={i} className={`flex mb-2 ${msg.sender && msg.sender._id === user._id ? "justify-end" : "justify-start"}`}>
+									<div className={`px-3 py-2 rounded-lg max-w-xs ${msg.sender && msg.sender._id === user._id ? "bg-indigo-600 text-white" : "bg-gray-700 text-gray-200"}`}>
+										<div className="text-xs opacity-80">
+											{msg.sender && msg.sender._id === user._id ? "You" : (msg.sender?.username || "User")}
+										</div>
+										<div className="break-words">{msg.content}</div>
 									</div>
 								</div>
 							))
