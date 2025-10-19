@@ -5,7 +5,10 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 // Initialize socket outside component to avoid multiple connections
-const socket = io(import.meta.env.VITE_RENDER_URL || window.location.origin, {
+let socketURL = import.meta.env.VITE_RENDER_URL || window.location.origin;
+
+socketURL = socketURL.replace("https://", "wss://");
+const socket = io(socketURL, {
 	autoConnect: false,
 	transports: ["websocket"]
 });
