@@ -29,7 +29,7 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 		const getOrCreateChat = async () => {
 			try {
 				setLoading(true);
-				const res = await axios.get(`/api/chats/product/${productId}/${participantId}`, {
+				const res = await axios.get(`${import.meta.env.VITE_RENDER_URL}/api/chats/product/${productId}/${participantId}`, {
 					headers: { Authorization: `Bearer ${token}` }
 				});
 				if (res.data && res.data._id) {
@@ -64,7 +64,7 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 				// Fallback polling (optional, can be removed if sockets are reliable)
 				interval = setInterval(async () => {
 					try {
-						const msgRes = await axios.get(`/api/chats/${res.data._id}/messages`, {
+						const msgRes = await axios.get(`${import.meta.env.VITE_RENDER_URL}/api/chats/${res.data._id}/messages`, {
 							headers: { Authorization: `Bearer ${token}` }
 						});
 						if (Array.isArray(msgRes.data)) {

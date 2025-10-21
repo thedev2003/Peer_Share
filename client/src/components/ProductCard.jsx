@@ -58,6 +58,7 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 		setJoinQueueLoading(true);
 		setActionError(null);
 		try {
+			console.log(_id);
 			const res = await axios.post(
 				`${API_URL.replace(/\/$/, "")}/api/products/${_id}/join-queue`,
 				{},
@@ -82,11 +83,16 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 		setLeaveQueueLoading(true);
 		setActionError(null);
 		try {
+			console.log(_id);
 			const res = await axios.post(
 				`${API_URL.replace(/\/$/, "")}/api/products/${_id}/leave-queue`,
 				{},
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
+			console.log(res.data);
+
+
+
 			// Update product in parent state after leaving queue
 			if (updateProductState) updateProductState(_id, res.data.product);
 			setShowChat(null);
@@ -105,10 +111,15 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 		}
 		setActionError(null);
 		try {
-			await axios.delete(
+			console.log(_id);
+			const deleteRes = await axios.delete(
 				`${API_URL.replace(/\/$/, "")}/api/products/${_id}`,
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
+			console.log(deleteRes.data);
+
+
+			
 			// Remove product from marketplace state after successful deletion
 			if (removeFromMarketplace) removeFromMarketplace(_id);
 		} catch (err) {
