@@ -4,19 +4,30 @@ import Product from '../models/Product.js';
 // Create or get chat between seller and buyer for product
 export const getOrCreateChat = async (req, res) => {
 	const { productId, participantId } = req.params;
-	const userId = req.user.id;
-	
+	const userId = req.user?.id;
+	console.log('[getOrCreateChat] productId:', productId, 'participantId:', participantId, 'userId:', userId);
 	try {
 		const product = await Product.findById(productId).populate('seller');
-		if (!product) return res.status(404).json({ message: 'Product not found' });
-		
+		if (!product) {
+			console.error('[getOrCreateChat] Product not found:', productId);
+			return res.status(404).json({ message: 'Product not found' });
+		}
+		if (!product.seller) {
+			console.error('[getOrCreateChat] Product missing seller:', product);
+			return res.status(500).json({ message: 'Product missing seller' });
+		}
+		if (!Array.isArray(product.interestedBuyers)) {
+			console.error('[getOrCreateChat] Product missing interestedBuyers:', product);
+			return res.status(500).json({ message: 'Product missing interestedBuyers' });
+		}
 		// Only seller or interested buyer can access
 		const isSeller = product.seller._id.toString() === userId;
-		
 		const isBuyer = product.interestedBuyers.map(id => id.toString()).includes(userId) || (product.buyer && product.buyer.toString() === userId);
-		
-		if (!isSeller && !isBuyer) return res.status(403).json({ message: 'Not authorized for chat' });
-
+		console.log('[getOrCreateChat] isSeller:', isSeller, 'isBuyer:', isBuyer);
+		if (!isSeller && !isBuyer) {
+			console.error('[getOrCreateChat] Not authorized for chat. userId:', userId, 'product:', productId);
+			return res.status(403).json({ message: 'Not authorized for chat' });
+		}
 		// Find or create chat
 		let chat = await Chat.findOne({
 			participants: { $all: [userId, participantId], $size: 2 },
@@ -29,11 +40,14 @@ export const getOrCreateChat = async (req, res) => {
 				messages: []
 			});
 			await chat.save();
+			console.log('[getOrCreateChat] Created new chat:', chat._id);
+		} else {
+			console.log('[getOrCreateChat] Found existing chat:', chat._id);
 		}
 		res.json(chat);
 	} catch (err) {
-		console.error(err.message);
-		res.status(500).send('Server Error');
+		console.error('[getOrCreateChat] Error:', err);
+		res.status(500).json({ message: 'Server Error', error: err.message, stack: err.stack });
 	}
 };
 
