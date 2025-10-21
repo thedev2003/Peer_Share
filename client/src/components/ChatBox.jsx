@@ -57,6 +57,7 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 
 				// Listen for previous messages (optional, for sync)
 				socket.on("previousMessages", (msgs) => {
+					console.log("[ChatBox] Received previousMessages:", msgs);
 					if (Array.isArray(msgs)) setMessages(msgs);
 				});
 
@@ -75,12 +76,12 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 					}
 				}, 10000); // poll less frequently if sockets are used
 			} catch (e) {
+				console.error("[ChatBox] Error fetching/creating chat:", e);
 				setMessages([]);
 			} finally {
 				setLoading(false);
 			}
 		};
-
 
 		getOrCreateChat();
 		return () => {
@@ -95,14 +96,13 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
-
-	// Send message
 	const handleSend = async (e) => {
 		e.preventDefault();
 		if (!input.trim() || !chatId) return;
 		setSending(true);
 		try {
 			// Emit to socket
+			console.log("[ChatBox] Sending message:", { chatId, senderId: user._id, content: input });
 			socket.emit("sendMessage", {
 				chatId,
 				senderId: user._id,
@@ -112,7 +112,6 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 		} catch (err) {
 			alert("Failed to send message");
 		} finally {
-			setSending(false);
 		}
 	};
 
@@ -160,11 +159,11 @@ export default function ChatBox({ productId, participantId, product, onClose }) 
 						autoFocus
 					/>
 					<button
-						className="px-4 py-2 rounded bg-indigo-600 text-white font-semibold disabled:opacity-60"
+						className={`px-4 py-2 rounded font-semibold transition-all duration-150 ${sending ? "bg-indigo-400" : "bg-indigo-600 hover:bg-indigo-700"} text-white disabled:opacity-60`}
 						type="submit"
 						disabled={sending || !input.trim()}
 					>
-						Send
+						{sending ? "Sending..." : "Send"}
 					</button>
 				</form>
 			</div>
