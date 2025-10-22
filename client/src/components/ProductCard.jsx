@@ -314,16 +314,16 @@ const ProductCard = ({ product, updateProductState, removeFromMarketplace }) => 
 				)}
 
 				{/* Render chat modal if needed */}
-				{showChat &&
-					(isSeller || isInQueue) && (
-						<ChatBox
-							chatId={_id}
-							product={product}
-							onClose={() => setShowChat(null)}
-							participantId={showChat}
-							isSeller={isSeller}
-						/>
-					)}
+				   {showChat &&
+					   (isSeller || isInQueue) && (
+						   <ChatBox
+							   productId={_id}
+							   product={product}
+							   onClose={() => setShowChat(null)}
+							   participantId={showChat}
+							   isSeller={isSeller}
+						   />
+					   )}
 			</div>
 		</div>
 	);
